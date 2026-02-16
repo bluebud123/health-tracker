@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#3B7A6B">
+<link rel="manifest" href="./manifest.json">
+<title>Health Tracker</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#F7F5F0;max-width:500px;margin:0 auto;overscroll-behavior:none}
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+input[type=number]{-moz-appearance:textfield}
+.cd{background:#fff;border-radius:16px;padding:18px;box-shadow:0 2px 12px rgba(0,0,0,.06);margin-bottom:14px;border:1px solid #E8E4DC;overflow:hidden}
+.ct{font-size:13px;font-weight:700;color:#3B7A6B;margin-bottom:12px;letter-spacing:.5px}
+.btn{border:none;border-radius:14px;padding:16px;font-weight:700;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-family:inherit}
+.bp{background:#3B7A6B;color:#fff;box-shadow:0 4px 14px rgba(59,122,107,.3)}
+.bw{background:#25D366;color:#fff;box-shadow:0 4px 14px rgba(37,211,102,.3)}
+.be{background:#5A6B8F;color:#fff}
+.bo{background:#fff;color:#3B7A6B;border:2px solid #3B7A6B}
+.inp{width:100%;padding:12px;border:1.5px solid #E8E4DC;border-radius:10px;outline:none;background:#FAFAF8;font-size:14px;font-family:inherit;box-sizing:border-box}
+.inp:focus{border-color:#3B7A6B}
+.ni{text-align:center;font-weight:600;font-size:16px}
+.lb{font-size:11px;color:#8A8A8A;font-weight:600;display:block;margin-bottom:4px}
+.rw{display:flex;gap:8px;align-items:center}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sc{background:#fff;border-radius:14px;padding:14px;border:1px solid #E8E4DC;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.db{display:flex;align-items:center;gap:12px;padding:14px;background:#fff;border:1.5px solid #E8E4DC;border-radius:14px;cursor:pointer;width:100%;text-align:left;margin-bottom:8px;font-family:inherit;font-size:14px}
+.db.ac{background:#E8F2EF;border-color:#3B7A6B}
+.tg{font-size:12px;padding:3px 8px;border-radius:8px;font-weight:600;display:inline-block}
+.tok{background:#E8F5E9;color:#4CAF50}.twn{background:#FFF8E1;color:#D4A017}.tbd{background:#FDEAEA;color:#D94F4F}
+.hd{background:linear-gradient(135deg,#3B7A6B,#2D6155);color:#fff;padding:24px 20px 20px;border-radius:0 0 24px 24px}
+.sh{background:#3B7A6B;color:#fff;padding:16px 18px;display:flex;align-items:center;gap:12px}
+.bb{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:8px;font-family:inherit}
+.lb2{background:rgba(255,255,255,.2);border:none;color:#fff;padding:8px 14px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+.mi{display:flex;align-items:center;padding:10px 12px;background:#FAFAF8;border-radius:10px;margin-bottom:6px;gap:10px}
+.da{width:100%;padding:12px;border-radius:10px;border:2px dashed #E8E4DC;background:#FAFAF8;cursor:pointer;font-size:13px;color:#8A8A8A;margin-top:4px;font-family:inherit}
+.al{background:#FDEAEA;border:2px solid #D94F4F;border-radius:14px;padding:16px;text-align:center;margin-bottom:14px}
+.hd2{display:none}
+.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#4CAF50;color:#fff;padding:8px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:200;opacity:0;transition:opacity .3s}
+.toast.show{opacity:1}
+canvas{display:block;margin:0 auto}
+</style>
+</head>
+<body>
+<div id="toast" class="toast">Saved ✓</div>
+<div id="app">Loading...</div>
+<script>
+"use strict";
+var LS={g:function(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},s:function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+var data=LS.g("ht-d")||{},goals=LS.g("ht-g")||{},meds=LS.g("ht-m")||[],labs=LS.g("ht-lb")||[],lang=LS.g("ht-l")||"en",uname=LS.g("ht-n")||"";
+var view="home",sel=td();
+
+var L={en:{
+app:"Health Tracker",hi:"Hi Mum & Dad \ud83e\udec0",hiN:"Hi {name} \ud83e\udec0",sub:"Track your health daily",log:"+ Log Today",
+wk:"This Week",rec:"Recent Days",ref:"Quick Reference",
+bp:"Blood Pressure",bpT:"Target: below 130/80 mmHg",mo:"Morning",ev:"Evening",sy:"Systolic",di:"Diastolic",
+su:"Blood Sugar",suT:"Fasting: 4.4\u20137.2 \u00b7 Post-meal: <10.0 mmol/L",fa:"Fasting",pm:"Post-meal",
+me:"Meals",bk:"Breakfast",lu:"Lunch",dn:"Dinner",sn:"Snacks",
+ex:"Exercise",mn:"Minutes",ty:"Type",ql:"Quick Log",mt:"Medication taken",wt:"Weight",nt:"Notes",
+wa:"Share via WhatsApp",wr:"\u26a0\ufe0f Reading outside safe range!",wM:"Please inform Shun Herng or visit a clinic.",
+nd:"e.g. 120/80, 5.5",td:"Today",he:"Health Entry",
+aB:"Avg BP",aS:"Avg Sugar",mL:"Meds",
+bR:"BP Target",bl:"Below 130/80",fS:"Fasting Sugar",sR:"4.4\u20137.2 mmol/L",bW:"BP Warning",bWR:"140\u2013159/90\u201399",em:"Emergency",eR:"BP\u2265160 Sugar\u2265250",
+wg:"Weekly Goal",sg:"Set this week's goal",gp:"e.g. Walk 15 min after dinner 3 days",ga:"Goal achieved!",md:"\u2713 Mark done",
+bpTr:"BP Trend (14 days)",sTr:"Sugar Trend (14 days)",tr:"Trends",ncd:"Start logging to see trends",
+ln:"\u4e2d\u6587",sv:"Save",cn:"Cancel",
+meds:"Medications",addM:"+ Add medication",noM:"No medications added yet",
+labs:"Lab Results",addL:"+ Add result",noL:"No lab results yet",
+exp:"\ud83d\udcc4 Export for Clinic",mr:"More",sn2:"Your Name",snP:"e.g. Mum / Dad / Ah Ma",eb:"\ud83d\udce7 Email Backup to Shun Herng",
+mp:{bk:"e.g. Roti canai + teh-O",lu:"e.g. Nasi + ikan bakar",dn:"e.g. Porridge + fish",sn:"e.g. Apple, nuts"},
+ep:"e.g. Evening walk",np:"Any notes...",
+mPh:{n:"e.g. Amlodipine",d:"e.g. 5mg",f:"e.g. Once daily",t:"e.g. Morning"}
+},zh:{
+app:"\u5065\u5eb7\u8ffd\u8e2a\u5668",hi:"\u7238\u5988\u597d \ud83e\udec0",hiN:"{name} \u597d \ud83e\udec0",sub:"\u6bcf\u5929\u8bb0\u5f55\u5065\u5eb7\u72b6\u51b5",log:"+ \u8bb0\u5f55\u4eca\u5929",
+wk:"\u672c\u5468",rec:"\u8fd1\u671f\u8bb0\u5f55",ref:"\u53c2\u8003\u6307\u6807",
+bp:"\u8840\u538b",bpT:"\u76ee\u6807\uff1a\u4f4e\u4e8e130/80",mo:"\u65e9\u4e0a",ev:"\u665a\u4e0a",sy:"\u6536\u7f29\u538b",di:"\u8212\u5f20\u538b",
+su:"\u8840\u7cd6",suT:"\u7a7a\u8179:4.4\u20137.2 \u00b7 \u9910\u540e:<10.0 mmol/L",fa:"\u7a7a\u8179",pm:"\u9910\u540e",
+me:"\u996e\u98df",bk:"\u65e9\u9910",lu:"\u5348\u9910",dn:"\u665a\u9910",sn:"\u96f6\u98df",
+ex:"\u8fd0\u52a8",mn:"\u5206\u949f",ty:"\u7c7b\u578b",ql:"\u5feb\u901f\u8bb0\u5f55",mt:"\u5df2\u670d\u836f",wt:"\u4f53\u91cd",nt:"\u5907\u6ce8",
+wa:"\u901a\u8fc7WhatsApp\u5206\u4eab",wr:"\u26a0\ufe0f \u8bfb\u6570\u8d85\u51fa\u5b89\u5168\u8303\u56f4\uff01",wM:"\u8bf7\u901a\u77e5\u987a\u6052\u6216\u5230\u8bca\u6240\u5c31\u533b\u3002",
+nd:"\u4f8b\uff1a120/80, 5.5",td:"\u4eca\u5929",he:"\u5065\u5eb7\u8bb0\u5f55",
+aB:"\u5e73\u5747\u8840\u538b",aS:"\u5e73\u5747\u8840\u7cd6",mL:"\u670d\u836f",
+bR:"\u8840\u538b\u76ee\u6807",bl:"\u4f4e\u4e8e130/80",fS:"\u7a7a\u8179\u8840\u7cd6",sR:"4.4\u20137.2",bW:"\u8840\u538b\u8b66\u544a",bWR:"140\u2013159/90\u201399",em:"\u7d27\u6025\u60c5\u51b5",eR:"\u8840\u538b\u2265160 \u8840\u7cd6\u226513.9",
+wg:"\u6bcf\u5468\u76ee\u6807",sg:"\u8bbe\u5b9a\u672c\u5468\u76ee\u6807",gp:"\u4f8b\uff1a\u996d\u540e\u6563\u6b6515\u5206\u949f\uff0c\u4e00\u54683\u6b21",ga:"\u76ee\u6807\u8fbe\u6210\uff01",md:"\u2713 \u6807\u8bb0\u5b8c\u6210",
+bpTr:"\u8840\u538b\u8d8b\u52bf (14\u5929)",sTr:"\u8840\u7cd6\u8d8b\u52bf (14\u5929)",tr:"\u8d8b\u52bf\u56fe",ncd:"\u5f00\u59cb\u8bb0\u5f55\u540e\u5373\u53ef\u67e5\u770b",
+ln:"EN",sv:"\u4fdd\u5b58",cn:"\u53d6\u6d88",
+meds:"\u836f\u7269\u6e05\u5355",addM:"+ \u6dfb\u52a0\u836f\u7269",noM:"\u5c1a\u672a\u6dfb\u52a0\u836f\u7269",
+labs:"\u5316\u9a8c\u7ed3\u679c",addL:"+ \u6dfb\u52a0\u7ed3\u679c",noL:"\u5c1a\u65e0\u5316\u9a8c\u7ed3\u679c",
+exp:"\ud83d\udcc4 \u5bfc\u51fa\u8bca\u6240\u62a5\u544a",mr:"\u66f4\u591a",sn2:"\u4f60\u7684\u540d\u5b57",snP:"\u4f8b\uff1a\u5988\u5988 / \u7238\u7238",eb:"\ud83d\udce7 \u53d1\u9001\u5907\u4efd\u7ed9\u987a\u6052",
+mp:{bk:"\u4f8b\uff1a\u9762\u5305+\u5496\u5561\u4e4c",lu:"\u4f8b\uff1a\u767d\u996d+\u84b8\u9c7c",dn:"\u4f8b\uff1a\u7ca5+\u6e05\u84b8\u9c7c",sn:"\u4f8b\uff1a\u82f9\u679c\u3001\u575a\u679c"},
+ep:"\u4f8b\uff1a\u665a\u996d\u540e\u6563\u6b65",np:"\u5176\u4ed6\u5907\u6ce8...",
+mPh:{n:"\u4f8b\uff1a\u6c28\u6c2f\u5730\u5e73",d:"\u4f8b\uff1a5mg",f:"\u4f8b\uff1a\u6bcf\u5929\u4e00\u6b21",t:"\u4f8b\uff1a\u65e9\u4e0a"}
+}};
+
+function T(){return L[lang]}
+function td(){return new Date().toISOString().split("T")[0]}
+function fD(d){var lo=lang==="zh"?"zh-CN":"en-MY";return new Date(d+"T00:00:00").toLocaleDateString(lo,{weekday:"short",day:"numeric",month:"short"})}
+function sD(d){var x=new Date(d+"T00:00:00");return x.getDate()+"/"+(x.getMonth()+1)}
+function wK(){var x=new Date(),j=new Date(x.getFullYear(),0,1);return x.getFullYear()+"-W"+Math.ceil(((x-j)/864e5+j.getDay()+1)/7)}
+function gL(n){var a=[];for(var i=n-1;i>=0;i--){var d=new Date();d.setDate(d.getDate()-i);a.push(d.toISOString().split("T")[0])}return a}
+function eE(){return{bpMornSys:"",bpMornDia:"",bpEveSys:"",bpEveDia:"",fastingSugar:"",postMealSugar:"",breakfast:"",lunch:"",dinner:"",snacks:"",exerciseMin:"",exerciseType:"",medsTaken:false,weight:"",notes:""}}
+function bpS(s){if(!s)return"";return s>=160?"bad":s>=130?"warn":"ok"}
+function suS(v){if(!v)return"";return(v<3.9||v>=13.9)?"bad":v>=10.0?"warn":v<=7.2?"ok":"warn"}
+function tc(s){return s==="ok"?"tok":s==="warn"?"twn":s==="bad"?"tbd":""}
+function esc(s){if(!s)return"";return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+
+function save(){LS.s("ht-d",data);LS.s("ht-g",goals);LS.s("ht-m",meds);LS.s("ht-lb",labs);LS.s("ht-l",lang);
+  var t=document.getElementById("toast");t.classList.add("show");setTimeout(function(){t.classList.remove("show")},1000)}
+function nav(v,d){view=v;if(d)sel=d;window.scrollTo({top:0,behavior:"smooth"});render()}
+function upd(f,v){if(!data[sel])data[sel]=eE();data[sel][f]=v;save();render()}
+function togLang(){lang=lang==="en"?"zh":"en";save();render()}
+
+// Canvas chart
+function drawChart(id,datasets,refs){
+  setTimeout(function(){
+    var canvas=document.getElementById(id);if(!canvas)return;
+    var ctx=canvas.getContext("2d");
+    var W=canvas.parentElement.clientWidth-36;if(W<100)W=280;
+    canvas.width=W*2;canvas.height=360;canvas.style.width=W+"px";canvas.style.height="180px";canvas.style.display="block";
+    ctx.scale(2,2);var w=W,h=180,p={t:10,r:15,b:25,l:35};
+    var cw=w-p.l-p.r,ch=h-p.t-p.b;
+    var allV=[];
+    for(var i=0;i<datasets.length;i++)for(var j=0;j<datasets[i].d.length;j++)if(datasets[i].d[j]!==null)allV.push(datasets[i].d[j]);
+    for(i=0;i<refs.length;i++)allV.push(refs[i].y);
+    if(!allV.length)return;
+    var mn=Math.floor((Math.min.apply(null,allV)-10)/10)*10;
+    var mx=Math.ceil((Math.max.apply(null,allV)+10)/10)*10;
+    var rng=mx-mn||1;
+    ctx.fillStyle="#fff";ctx.fillRect(0,0,w,h);
+    ctx.strokeStyle="#F0EDE8";ctx.lineWidth=.5;
+    for(i=0;i<=4;i++){var y=p.t+ch*(i/4);ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(w-p.r,y);ctx.stroke();
+      ctx.fillStyle="#8A8A8A";ctx.font="9px sans-serif";ctx.textAlign="right";ctx.fillText(Math.round(mx-rng*(i/4)),p.l-4,y+3)}
+    var lbs=datasets[0].labels;ctx.fillStyle="#8A8A8A";ctx.font="9px sans-serif";ctx.textAlign="center";
+    var step=Math.max(1,Math.floor(lbs.length/5));
+    for(i=0;i<lbs.length;i++)if(i%step===0||i===lbs.length-1)ctx.fillText(lbs[i],p.l+cw*(i/(lbs.length-1)),h-6);
+    for(i=0;i<refs.length;i++){y=p.t+ch*(1-(refs[i].y-mn)/rng);ctx.strokeStyle=refs[i].c;ctx.lineWidth=1;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(w-p.r,y);ctx.stroke();ctx.setLineDash([])}
+    for(i=0;i<datasets.length;i++){var ds=datasets[i],pts=[];
+      for(j=0;j<ds.d.length;j++)if(ds.d[j]!==null)pts.push({x:p.l+cw*(j/(lbs.length-1)),y:p.t+ch*(1-(ds.d[j]-mn)/rng)});
+      if(pts.length<2)continue;
+      ctx.strokeStyle=ds.c;ctx.lineWidth=ds.da?1.5:2.5;if(ds.da)ctx.setLineDash([4,3]);else ctx.setLineDash([]);
+      ctx.beginPath();for(j=0;j<pts.length;j++){if(j===0)ctx.moveTo(pts[j].x,pts[j].y);else ctx.lineTo(pts[j].x,pts[j].y)}ctx.stroke();ctx.setLineDash([]);
+      if(!ds.da)for(j=0;j<pts.length;j++){ctx.beginPath();ctx.arc(pts[j].x,pts[j].y,3.5,0,Math.PI*2);ctx.fillStyle="#fff";ctx.fill();ctx.strokeStyle=ds.c;ctx.lineWidth=2;ctx.stroke()}}
+  },300);
+}
+
+function waMsg(){
+  var e=data[sel]||eE(),ds=fD(sel),n=[];
+  n.push("\ud83d\udccb *Health \u2014 "+ds+"*","");
+  if(e.bpMornSys)n.push("\u2764\ufe0f Morn BP: "+e.bpMornSys+"/"+e.bpMornDia);
+  if(e.bpEveSys)n.push("\u2764\ufe0f Eve BP: "+e.bpEveSys+"/"+e.bpEveDia);
+  if(e.fastingSugar)n.push("\ud83e\ude78 Fasting: "+e.fastingSugar+" mmol/L");
+  if(e.postMealSugar)n.push("\ud83e\ude78 Post-meal: "+e.postMealSugar+" mmol/L");
+  n.push("");
+  if(e.breakfast)n.push("\ud83c\udf73 "+e.breakfast);
+  if(e.lunch)n.push("\ud83c\udf5a "+e.lunch);
+  if(e.dinner)n.push("\ud83c\udf7d\ufe0f "+e.dinner);
+  n.push("");
+  if(e.exerciseMin)n.push("\ud83d\udeb6 "+e.exerciseMin+"min");
+  n.push("\ud83d\udc8a Meds: "+(e.medsTaken?"\u2705":"\u274c"));
+  if(bpS(+e.bpMornSys)==="bad"||suS(+e.fastingSugar)==="bad")n.push("","\u26a0\ufe0f *WARNING*");
+  return n.join("\n");
+}
+
+function doExport(){
+  var c="HEALTH REPORT - "+new Date().toLocaleDateString()+"\n\nDate,Morning BP,Evening BP,Fasting Sugar(mmol/L),Post-meal Sugar(mmol/L),Exercise(min),Medication,Weight\n";
+  var keys=Object.keys(data).sort().reverse();
+  for(var i=0;i<keys.length;i++){var d=keys[i],e=data[d];
+    c+=d+","+(e.bpMornSys?e.bpMornSys+"/"+e.bpMornDia:"")+","+(e.bpEveSys?e.bpEveSys+"/"+e.bpEveDia:"")+","+(e.fastingSugar||"")+","+(e.postMealSugar||"")+","+(e.exerciseMin||"")+","+(e.medsTaken?"Yes":"No")+","+(e.weight||"")+"\n"}
+  c+="\nMEDICATIONS\nName,Dose,Frequency,Time\n";
+  for(i=0;i<meds.length;i++)c+=meds[i].name+","+meds[i].dose+","+meds[i].freq+","+meds[i].time+"\n";
+  c+="\nLAB RESULTS\nDate,HbA1c(%),Total Chol,LDL,HDL,TG\n";
+  for(i=0;i<labs.length;i++){var l=labs[i];c+=l.date+","+(l.hba1c||"")+","+(l.chol||"")+","+(l.ldl||"")+","+(l.hdl||"")+","+(l.trig||"")+"\n"}
+  var b=new Blob([c],{type:"text/csv"}),u=URL.createObjectURL(b),a=document.createElement("a");
+  a.href=u;a.download="health-report-"+td()+".csv";a.click();URL.revokeObjectURL(u);
+}
+
+function emailBackup(){
+  var subj="Health Tracker Backup - "+(uname||"Parent")+" - "+td();
+  var body="HEALTH TRACKER BACKUP\n";
+  body+="Name: "+(uname||"Parent")+"\nDate: "+new Date().toLocaleDateString()+"\n\n";
+  body+="=== RECENT READINGS (Last 14 days) ===\n";
+  var d14=gL(14);
+  for(var i=d14.length-1;i>=0;i--){var d=d14[i],e=data[d];if(!e)continue;
+    body+=d+": ";
+    if(e.bpMornSys)body+="BP "+e.bpMornSys+"/"+e.bpMornDia+" ";
+    if(e.fastingSugar)body+="Sugar "+e.fastingSugar+" ";
+    if(e.medsTaken)body+="Meds:Yes ";
+    if(e.exerciseMin)body+="Ex:"+e.exerciseMin+"min ";
+    body+="\n";}
+  body+="\n=== MEDICATIONS ===\n";
+  for(var i=0;i<meds.length;i++)body+=meds[i].name+" "+meds[i].dose+" "+meds[i].freq+"\n";
+  body+="\n=== LAB RESULTS ===\n";
+  for(var i=0;i<labs.length;i++){var l=labs[i];body+=l.date+": ";if(l.hba1c)body+="HbA1c:"+l.hba1c+"% ";if(l.chol)body+="Chol:"+l.chol+" ";if(l.ldl)body+="LDL:"+l.ldl+" ";body+="\n";}
+  body+="\n=== FULL DATA (JSON) ===\n"+JSON.stringify({data:data,meds:meds,labs:labs,goals:goals});
+  var em=LS.g("ht-email")||"";window.location.href="mailto:"+em+"?subject="+encodeURIComponent(subj)+"&body="+encodeURIComponent(body);
+}
+
+function syncToSheet(){
+  var SHEET_URL=LS.g("ht-sheet")||"";
+  if(!SHEET_URL){alert(lang==="zh"?"\u8bf7\u5148\u8bbe\u7f6eGoogle Sheets URL":"Please set Google Sheets URL first");return}
+  var e=data[sel]||eE();
+  var payload={name:uname||"Parent",date:sel,bpMornSys:e.bpMornSys,bpMornDia:e.bpMornDia,bpEveSys:e.bpEveSys,bpEveDia:e.bpEveDia,fastingSugar:e.fastingSugar,postMealSugar:e.postMealSugar,breakfast:e.breakfast,lunch:e.lunch,dinner:e.dinner,snacks:e.snacks,exerciseMin:e.exerciseMin,exerciseType:e.exerciseType,medsTaken:e.medsTaken?"Yes":"No",weight:e.weight,notes:e.notes};
+  fetch(SHEET_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)}).then(function(){
+    var t=document.getElementById("toast");t.textContent="\u2601\ufe0f Synced!";t.classList.add("show");setTimeout(function(){t.classList.remove("show");t.textContent="Saved \u2713"},1500);
+  }).catch(function(err){alert("Sync failed: "+err)});
+}
+
+function numInp(field,val,ph){
+  var dec=field.indexOf("Sugar")>=0?"decimal":"numeric";
+  var step=field.indexOf("Sugar")>=0?' step="0.1"':"";  
+  return '<input type="number" inputmode="'+dec+'" '+step+' class="inp ni" value="'+esc(val)+'" placeholder="'+ph+'" onchange="upd(\''+field+'\',this.value)">';
+}
+function txtInp(field,val,ph){
+  return '<input class="inp" value="'+esc(val)+'" placeholder="'+esc(ph)+'" onchange="upd(\''+field+'\',this.value)">';
+}
+
+function render(){
+  var t=T(),el=document.getElementById("app"),e=data[sel]||eE();
+
+  if(view==="entry"){
+    var iT=sel===td(),hasD=e.bpMornSys||e.fastingSugar||e.medsTaken||e.breakfast;
+    var isDn=bpS(+e.bpMornSys)==="bad"||bpS(+e.bpEveSys)==="bad"||suS(+e.fastingSugar)==="bad";
+    var h='<div class="sh"><button class="bb" onclick="nav(\'home\')">\u2190</button><div style="flex:1"><div style="font-weight:800;font-size:17px">'+(iT?t.td:fD(sel))+'</div><div style="font-size:12px;opacity:.8">'+(iT?fD(sel):t.he)+'</div></div><button class="lb2" onclick="togLang()">'+t.ln+'</button></div>';
+    h+='<div style="padding:16px">';
+    // BP
+    h+='<div class="cd"><div class="ct">\u2764\ufe0f '+t.bp+'</div><div style="font-size:12px;color:#8A8A8A;margin-bottom:10px">'+t.bpT+'</div>';
+    h+='<div style="font-size:12px;font-weight:600;margin-bottom:6px">'+t.mo+'</div>';
+    h+='<div class="rw" style="margin-bottom:12px"><div style="flex:1"><span class="lb">'+t.sy+'</span>'+numInp("bpMornSys",e.bpMornSys,"120")+'</div><span style="font-size:20px;color:#8A8A8A;margin-top:16px">/</span><div style="flex:1"><span class="lb">'+t.di+'</span>'+numInp("bpMornDia",e.bpMornDia,"80")+'</div><span style="font-size:11px;color:#8A8A8A;margin-top:16px">mmHg</span></div>';
+    h+='<div style="font-size:12px;font-weight:600;margin-bottom:6px">'+t.ev+'</div>';
+    h+='<div class="rw"><div style="flex:1"><span class="lb">'+t.sy+'</span>'+numInp("bpEveSys",e.bpEveSys,"120")+'</div><span style="font-size:20px;color:#8A8A8A;margin-top:16px">/</span><div style="flex:1"><span class="lb">'+t.di+'</span>'+numInp("bpEveDia",e.bpEveDia,"80")+'</div><span style="font-size:11px;color:#8A8A8A;margin-top:16px">mmHg</span></div></div>';
+    // Sugar
+    h+='<div class="cd"><div class="ct">\ud83e\ude78 '+t.su+'</div><div style="font-size:12px;color:#8A8A8A;margin-bottom:10px">'+t.suT+'</div>';
+    h+='<div class="rw"><div style="flex:1"><span class="lb">'+t.fa+'</span>'+numInp("fastingSugar",e.fastingSugar,"5.5")+'</div><div style="flex:1"><span class="lb">'+t.pm+'</span>'+numInp("postMealSugar",e.postMealSugar,"7.8")+'</div></div></div>';
+    // Meals
+    h+='<div class="cd"><div class="ct">\ud83c\udf7d\ufe0f '+t.me+'</div>';
+    var ml=[["breakfast","bk"],["lunch","lu"],["dinner","dn"],["snacks","sn"]];
+    for(var i=0;i<ml.length;i++)h+='<div style="margin-bottom:10px"><span class="lb">'+t[ml[i][1]]+'</span>'+txtInp(ml[i][0],e[ml[i][0]],t.mp[ml[i][1]])+'</div>';
+    h+='</div>';
+    // Exercise
+    h+='<div class="cd"><div class="ct">\ud83d\udeb6 '+t.ex+'</div><div class="rw"><div style="flex:1"><span class="lb">'+t.mn+'</span>'+numInp("exerciseMin",e.exerciseMin,"30")+'</div><div style="flex:2"><span class="lb">'+t.ty+'</span>'+txtInp("exerciseType",e.exerciseType,t.ep)+'</div></div></div>';
+    // Quick log
+    h+='<div class="cd"><div class="ct">\u2705 '+t.ql+'</div><div style="margin-bottom:12px"><button onclick="upd(\'medsTaken\','+(e.medsTaken?"false":"true")+')" style="padding:12px 16px;border-radius:12px;border:1.5px solid '+(e.medsTaken?"#3B7A6B":"#E8E4DC")+';background:'+(e.medsTaken?"#E8F2EF":"#FAFAF8")+';cursor:pointer;font-size:14px;font-weight:600;color:'+(e.medsTaken?"#3B7A6B":"#8A8A8A")+';font-family:inherit">\ud83d\udc8a '+t.mt+'</button></div>';
+    h+='<div class="rw"><div style="flex:1"><span class="lb">'+t.wt+'</span>'+numInp("weight",e.weight,"65")+'</div><div style="flex:2"><span class="lb">'+t.nt+'</span>'+txtInp("notes",e.notes,t.np)+'</div></div></div>';
+    // Warning
+    if(isDn)h+='<div class="al"><div style="font-size:24px">\u26a0\ufe0f</div><div style="font-weight:700;color:#D94F4F;margin-top:4px">'+t.wr+'</div><div style="font-size:13px;margin-top:4px">'+t.wM+'</div></div>';
+    // WhatsApp
+    if(hasD)h+='<button class="btn bw" onclick="window.open(\'https://wa.me/?text=\'+encodeURIComponent(waMsg()),\'_blank\')"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>'+t.wa+'</button>';
+    // Auto sync after entry
+    var shUrl=LS.g("ht-sheet")||"";
+    if(hasD&&shUrl)h+='<button class="btn" style="background:#4A90D9;color:#fff;margin-top:10px" onclick="syncToSheet()">\u2601\ufe0f Sync to Google Sheets</button>';
+    h+='</div>';
+    el.innerHTML=h;return;
+  }
+
+  if(view==="more"){
+    var h='<div class="sh"><button class="bb" onclick="nav(\'home\')">\u2190</button><div style="flex:1;font-weight:800;font-size:17px">'+t.mr+'</div><button class="lb2" onclick="togLang()">'+t.ln+'</button></div>';
+    h+='<div style="padding:16px">';
+    // Meds
+    h+='<div class="cd"><div class="ct">\ud83d\udc8a '+t.meds+'</div>';
+    if(meds.length===0)h+='<div style="color:#8A8A8A;font-size:13px;font-style:italic;margin-bottom:10px">'+t.noM+'</div>';
+    for(var i=0;i<meds.length;i++)h+='<div class="mi"><div style="flex:1"><div style="font-weight:700">'+esc(meds[i].name)+' <span style="font-weight:400;color:#8A8A8A;font-size:12px">'+esc(meds[i].dose)+'</span></div><div style="font-size:12px;color:#8A8A8A">'+esc(meds[i].freq)+(meds[i].time?" \u00b7 "+esc(meds[i].time):"")+'</div></div><button onclick="meds.splice('+i+',1);save();render()" style="background:none;border:none;color:#D94F4F;font-size:18px;cursor:pointer">\u00d7</button></div>';
+    h+='<div id="mf" style="display:none;margin-top:8px"><span class="lb">Name</span><input class="inp" id="mn" style="margin-bottom:8px"><div class="rw"><div style="flex:1"><span class="lb">Dose</span><input class="inp" id="md" style="margin-bottom:8px"></div><div style="flex:1"><span class="lb">Freq</span><input class="inp" id="mfr" style="margin-bottom:8px"></div></div><span class="lb">Time</span><input class="inp" id="mti" style="margin-bottom:8px"><div class="rw"><button class="btn bp" style="flex:1;padding:10px" onclick="addMed()">'+t.sv+'</button><button class="btn bo" style="flex:0;padding:10px 16px" onclick="document.getElementById(\'mf\').style.display=\'none\'">'+t.cn+'</button></div></div>';
+    h+='<button class="da" onclick="document.getElementById(\'mf\').style.display=\'block\'">'+t.addM+'</button></div>';
+    // Labs
+    h+='<div class="cd"><div class="ct">\ud83e\uddea '+t.labs+'</div>';
+    if(labs.length===0)h+='<div style="color:#8A8A8A;font-size:13px;font-style:italic;margin-bottom:10px">'+t.noL+'</div>';
+    for(i=0;i<labs.length;i++){var l=labs[i];
+      h+='<div style="padding:12px;background:#FAFAF8;border-radius:10px;margin-bottom:8px"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:12px;font-weight:700;color:#3B7A6B">'+fD(l.date)+'</span><button onclick="labs.splice('+i+',1);save();render()" style="background:none;border:none;color:#D94F4F;font-size:16px;cursor:pointer">\u00d7</button></div><div class="g2" style="font-size:13px">';
+      if(l.hba1c)h+='<div class="tg '+(+l.hba1c<7?"tok":+l.hba1c<8?"twn":"tbd")+'">HbA1c <b>'+l.hba1c+'%</b></div>';
+      if(l.chol)h+='<div style="padding:4px 8px;background:#F5F5F0;border-radius:6px">TC <b>'+l.chol+'</b></div>';
+      if(l.ldl)h+='<div style="padding:4px 8px;background:#F5F5F0;border-radius:6px">LDL <b>'+l.ldl+'</b></div>';
+      if(l.hdl)h+='<div style="padding:4px 8px;background:#F5F5F0;border-radius:6px">HDL <b>'+l.hdl+'</b></div>';
+      if(l.trig)h+='<div style="padding:4px 8px;background:#F5F5F0;border-radius:6px">TG <b>'+l.trig+'</b></div>';
+      h+='</div></div>';}
+    h+='<div id="lf" style="display:none;margin-top:8px"><span class="lb">Date</span><input type="date" class="inp" id="ld" value="'+td()+'" style="margin-bottom:8px"><div class="g2">';
+    var lfs=[["lhba","HbA1c(%)","6.5"],["lcho","Total Chol","5.0"],["lldl","LDL","2.6"],["lhdl","HDL","1.5"],["ltri","TG","1.7"]];
+    for(i=0;i<lfs.length;i++)h+='<div><span class="lb" style="font-size:10px">'+lfs[i][1]+'</span><input type="number" inputmode="decimal" step="0.1" class="inp ni" id="'+lfs[i][0]+'" placeholder="'+lfs[i][2]+'"></div>';
+    h+='</div><div class="rw" style="margin-top:10px"><button class="btn bp" style="flex:1;padding:10px" onclick="addLab()">'+t.sv+'</button><button class="btn bo" style="flex:0;padding:10px 16px" onclick="document.getElementById(\'lf\').style.display=\'none\'">'+t.cn+'</button></div></div>';
+    h+='<button class="da" onclick="document.getElementById(\'lf\').style.display=\'block\'">'+t.addL+'</button></div>';
+    // Name Setting
+    h+='<div class="cd"><div class="ct">\ud83d\udc64 '+t.sn2+'</div>';
+    h+='<input class="inp" value="'+esc(uname)+'" placeholder="'+t.snP+'" onchange="uname=this.value;LS.s(\'ht-n\',uname);save();render()" style="margin-bottom:4px">';
+    h+='</div>';
+    // Backup Email
+    var bkEmail=LS.g("ht-email")||"";
+    h+='<div class="cd"><div class="ct">\ud83d\udce7 Backup Email</div>';
+    h+='<input class="inp" value="'+esc(bkEmail)+'" placeholder="email@example.com" onchange="LS.s(\'ht-email\',this.value)" style="margin-bottom:4px">';
+    h+='<div style="font-size:11px;color:#8A8A8A">'+(lang==="zh"?"\u5907\u4efd\u5c06\u53d1\u9001\u5230\u6b64\u90ae\u7bb1":"Backup will be sent to this email")+'</div></div>';
+    // Google Sheets Sync
+    var sheetUrl=LS.g("ht-sheet")||"";
+    h+='<div class="cd"><div class="ct">\u2601\ufe0f Google Sheets Sync</div>';
+    if(sheetUrl){h+='<div style="font-size:12px;color:#4CAF50;margin-bottom:8px">\u2705 Connected</div>';
+      h+='<button class="btn bp" style="padding:10px;margin-bottom:8px" onclick="syncToSheet()">Sync today\'s data</button>';
+      h+='<button style="background:none;border:none;color:#D94F4F;font-size:12px;cursor:pointer" onclick="LS.s(\'ht-sheet\',\'\');render()">Disconnect</button>';}
+    else{h+='<div style="font-size:12px;color:#8A8A8A;margin-bottom:8px">'+(lang==="zh"?"\u8ba9\u987a\u6052\u5e2e\u4f60\u8bbe\u7f6e":"Ask Shun Herng to set this up")+'</div>';
+      h+='<input class="inp" id="sheet-url" placeholder="Paste Google Sheets URL here" style="font-size:12px;margin-bottom:8px">';
+      h+='<button class="btn bp" style="padding:10px" onclick="var u=document.getElementById(\'sheet-url\').value;if(u.trim()){LS.s(\'ht-sheet\',u.trim());render()}">Connect</button>';}
+    h+='</div>';
+    // Email Backup
+    h+='<button class="btn" style="background:#E8724A;color:#fff;margin-bottom:14px" onclick="emailBackup()">'+t.eb+'</button>';
+    // Export
+    h+='<button class="btn be" onclick="doExport()">'+t.exp+'</button>';
+    h+='</div>';
+    el.innerHTML=h;return;
+  }
+
+  // HOME
+  var d7=gL(7),en=[];for(var i=0;i<d7.length;i++)if(data[d7[i]])en.push(data[d7[i]]);
+  var bR=[],bD=[],sR=[];for(i=0;i<en.length;i++){if(en[i].bpMornSys){bR.push(+en[i].bpMornSys);bD.push(+en[i].bpMornDia)}if(en[i].fastingSugar)sR.push(+en[i].fastingSugar)}
+  var eD=0,mD=0,tE=0;for(i=0;i<en.length;i++){if(+en[i].exerciseMin>0)eD++;if(en[i].medsTaken)mD++;tE+=(+en[i].exerciseMin||0)}
+  var aB=bR.length?Math.round(bR.reduce(function(a,b){return a+b},0)/bR.length):null;
+  var aDia=bD.length?Math.round(bD.reduce(function(a,b){return a+b},0)/bD.length):null;
+  var aS=sR.length?Math.round(sR.reduce(function(a,b){return a+b},0)/sR.length):null;
+  var cw=wK(),cg=goals[cw];
+  var dates=gL(14).reverse();
+  
+  var h='<div class="hd"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:13px;opacity:.8;margin-bottom:2px">'+t.app+'</div><div style="font-size:24px;font-weight:800;margin-bottom:4px">'+(uname?t.hiN.replace("{name}",esc(uname)):t.hi)+'</div><div style="font-size:13px;opacity:.75">'+fD(td())+' \u00b7 '+t.sub+'</div></div><button class="lb2" onclick="togLang()">'+t.ln+'</button></div></div>';
+  h+='<div style="padding:16px">';
+  // Buttons
+  h+='<div class="rw" style="margin-bottom:18px;gap:10px"><button class="btn bp" style="flex:3" onclick="nav(\'entry\',\''+td()+'\')">'+t.log+'</button><button class="btn bo" style="flex:1;flex-direction:column;gap:2px;font-size:14px" onclick="nav(\'more\')">\u2699\ufe0f<span style="font-size:11px">'+t.mr+'</span></button></div>';
+  // Goal
+  if(cg){h+='<div class="cd"><div class="ct">\ud83c\udfaf '+t.wg+'</div><div style="padding:14px;border-radius:12px;background:'+(cg.achieved?"#E8F5E9":"#E8F2EF")+';border:1.5px solid '+(cg.achieved?"#4CAF50":"#3B7A6B")+'"><div style="font-size:15px;font-weight:700;margin-bottom:6px">'+(cg.achieved?"\u2705 ":"\ud83c\udfaf ")+esc(cg.text)+'</div>'+(cg.achieved?'<div style="font-size:13px;color:#4CAF50;font-weight:600">'+t.ga+'</div>':'<button onclick="goals[\''+cw+'\'].achieved=true;save();render()" style="padding:8px 14px;border-radius:10px;background:#4CAF50;color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">'+t.md+'</button>')+'</div></div>';}
+  else{h+='<div class="cd"><div class="ct">\ud83c\udfaf '+t.wg+'</div><button class="da" onclick="var g=prompt(\''+t.gp.replace(/'/g,"\\'")+'\');if(g&&g.trim()){goals[\''+cw+'\']=({text:g.trim(),achieved:false});save();render()}">+ '+t.sg+'</button></div>';}
+  // Stats
+  h+='<div style="font-size:14px;font-weight:700;margin-bottom:10px">\ud83d\udcca '+t.wk+'</div>';
+  h+='<div class="g2" style="margin-bottom:18px">';
+  var bpCol=aB?({ok:"#4CAF50",warn:"#D4A017",bad:"#D94F4F"}[bpS(aB)]||"#2D2D2D"):"#2D2D2D";
+  var suCol=aS?({ok:"#4CAF50",warn:"#D4A017",bad:"#D94F4F"}[suS(aS)]||"#2D2D2D"):"#2D2D2D";
+  h+='<div class="sc"><div class="lb">\u2764\ufe0f '+t.aB+'</div><span style="font-size:22px;font-weight:800;color:'+bpCol+'">'+(aB?(aB+"/"+(aDia||"--")):"\u2014")+'</span> <span style="font-size:11px;color:#8A8A8A">mmHg</span></div>';
+  h+='<div class="sc"><div class="lb">\ud83e\ude78 '+t.aS+'</div><span style="font-size:22px;font-weight:800;color:'+suCol+'">'+(aS||"\u2014")+'</span> <span style="font-size:11px;color:#8A8A8A">mmol/L</span></div>';
+  h+='<div class="sc"><div class="lb">\ud83d\udeb6 '+t.ex+'</div><span style="font-size:22px;font-weight:800">'+eD+'/7</span></div>';
+  h+='<div class="sc"><div class="lb">\ud83d\udc8a '+t.mL+'</div><span style="font-size:22px;font-weight:800">'+mD+'/7</span></div></div>';
+  // Charts
+  h+='<div style="font-size:14px;font-weight:700;margin-bottom:10px">\ud83d\udcc8 '+t.tr+'</div>';
+  h+='<div class="cd"><div class="ct">\u2764\ufe0f '+t.bpTr+'</div><canvas id="bpc"></canvas></div>';
+  h+='<div class="cd"><div class="ct">\ud83e\ude78 '+t.sTr+'</div><canvas id="suc"></canvas></div>';
+  // Meds summary
+  if(meds.length>0){h+='<div class="cd"><div class="ct">\ud83d\udc8a '+t.meds+'</div>';for(i=0;i<meds.length;i++)h+='<div style="font-size:13px;padding:4px 0"><span style="font-weight:600">'+esc(meds[i].name)+'</span> <span style="color:#8A8A8A">'+esc(meds[i].dose)+' \u00b7 '+esc(meds[i].freq)+'</span></div>';h+='</div>';}
+  // Days
+  h+='<div style="font-size:14px;font-weight:700;margin-bottom:10px">\ud83d\udcc5 '+t.rec+'</div>';
+  for(i=0;i<dates.length;i++){
+    var d=dates[i],x=data[d],bs=bpS(+(x&&x.bpMornSys)),ss=suS(+(x&&x.fastingSugar)),has=x&&(x.bpMornSys||x.fastingSugar||x.medsTaken),iT=d===td();
+    var dn=new Date(d+"T00:00:00"),dayN=dn.toLocaleDateString(lang==="zh"?"zh-CN":"en-MY",{weekday:"short"});
+    h+='<button class="db'+(iT?" ac":"")+'" onclick="nav(\'entry\',\''+d+'\')">';
+    h+='<div style="min-width:44px;text-align:center"><div style="font-size:11px;color:#8A8A8A;font-weight:600">'+dayN+'</div><div style="font-size:20px;font-weight:800;color:'+(iT?"#3B7A6B":"#2D2D2D")+'">'+dn.getDate()+'</div></div>';
+    h+='<div style="flex:1;display:flex;gap:8px;align-items:center;flex-wrap:wrap">';
+    if(x&&x.bpMornSys)h+='<span class="tg '+tc(bs)+'">'+x.bpMornSys+'/'+x.bpMornDia+'</span>';
+    if(x&&x.fastingSugar)h+='<span class="tg '+tc(ss)+'">'+x.fastingSugar+'</span>';
+    if(x&&x.medsTaken)h+='\ud83d\udc8a';
+    if(x&&+x.exerciseMin>0)h+='\ud83d\udeb6';
+    h+='</div>';
+    if(!has)h+='<span style="font-size:12px;color:#8A8A8A;font-style:italic">'+t.nd+'</span>';
+    h+='\u203a</button>';
+  }
+  // Reference
+  h+='<div class="cd" style="margin-top:18px"><div class="ct">\ud83c\udfaf '+t.ref+'</div><div class="g2" style="font-size:12px">';
+  h+='<div style="padding:8px;background:#E8F5E9;border-radius:8px"><div style="font-weight:700;color:#4CAF50">'+t.bR+'</div>'+t.bl+'</div>';
+  h+='<div style="padding:8px;background:#E8F5E9;border-radius:8px"><div style="font-weight:700;color:#4CAF50">'+t.fS+'</div>'+t.sR+'</div>';
+  h+='<div style="padding:8px;background:#FFF8E1;border-radius:8px"><div style="font-weight:700;color:#D4A017">'+t.bW+'</div>'+t.bWR+'</div>';
+  h+='<div style="padding:8px;background:#FDEAEA;border-radius:8px"><div style="font-weight:700;color:#D94F4F">'+t.em+'</div>'+t.eR+'</div></div></div>';
+  h+='</div>';
+  el.innerHTML=h;
+
+  // Draw charts
+  var d14=gL(14),lbs=[];for(i=0;i<d14.length;i++)lbs.push(sD(d14[i]));
+  var bpD=[],bpD2=[],bpD3=[],bpD4=[];
+  for(i=0;i<d14.length;i++){var dd=data[d14[i]];bpD.push(dd&&dd.bpMornSys?+dd.bpMornSys:null);bpD2.push(dd&&dd.bpEveSys?+dd.bpEveSys:null);bpD3.push(dd&&dd.bpMornDia?+dd.bpMornDia:null);bpD4.push(dd&&dd.bpEveDia?+dd.bpEveDia:null)}
+  var hasBP=false;for(i=0;i<bpD.length;i++)if(bpD[i]!==null||bpD2[i]!==null){hasBP=true;break}
+  if(hasBP)drawChart("bpc",[{d:bpD,c:"#E05A5A",labels:lbs},{d:bpD2,c:"#5A8FE0",labels:lbs},{d:bpD3,c:"#E05A5A",da:1,labels:lbs},{d:bpD4,c:"#5A8FE0",da:1,labels:lbs}],[{y:130,c:"#D4A017"},{y:160,c:"#D94F4F"}]);
+  else{var cc=document.getElementById("bpc");if(cc)cc.insertAdjacentHTML("afterend",'<div style="text-align:center;color:#C4C0B8;font-size:12px;padding:15px;font-style:italic">'+t.ncd+'</div>')}
+  var suD=[],suD2=[];for(i=0;i<d14.length;i++){var dd=data[d14[i]];suD.push(dd&&dd.fastingSugar?+dd.fastingSugar:null);suD2.push(dd&&dd.postMealSugar?+dd.postMealSugar:null)}
+  var hasSu=false;for(i=0;i<suD.length;i++)if(suD[i]!==null||suD2[i]!==null){hasSu=true;break}
+  if(hasSu)drawChart("suc",[{d:suD,c:"#E07A3A",labels:lbs},{d:suD2,c:"#9B59B6",labels:lbs}],[{y:7.2,c:"#D4A017"},{y:10.0,c:"#D94F4F"}]);
+  else{var cc=document.getElementById("suc");if(cc)cc.insertAdjacentHTML("afterend",'<div style="text-align:center;color:#C4C0B8;font-size:12px;padding:15px;font-style:italic">'+t.ncd+'</div>')}
+}
+
+function addMed(){var n=document.getElementById("mn").value;if(!n.trim())return;meds.push({name:n,dose:document.getElementById("md").value,freq:document.getElementById("mfr").value,time:document.getElementById("mti").value,id:Date.now()});save();render()}
+function addLab(){var h=document.getElementById("lhba").value,c=document.getElementById("lcho").value;if(!h&&!c)return;labs.unshift({date:document.getElementById("ld").value,hba1c:h,chol:c,ldl:document.getElementById("lldl").value,hdl:document.getElementById("lhdl").value,trig:document.getElementById("ltri").value,id:Date.now()});save();render()}
+
+if("serviceWorker" in navigator)navigator.serviceWorker.register("./sw.js").catch(function(){});
+render();
+</script>
+</body>
+</html>
