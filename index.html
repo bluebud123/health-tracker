@@ -52,6 +52,7 @@ canvas{display:block;margin:0 auto}
 "use strict";
 var LS={g:function(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},s:function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 var data=LS.g("ht-d")||{},goals=LS.g("ht-g")||{},meds=LS.g("ht-m")||[],labs=LS.g("ht-lb")||[],lang=LS.g("ht-l")||"en",uname=LS.g("ht-n")||"";
+var caregiver=LS.g("ht-cg")||"";var deviceId=LS.g("ht-did");if(!deviceId){deviceId="D"+Math.random().toString(36).substr(2,8).toUpperCase();LS.s("ht-did",deviceId)}
 var view="home",sel=td(),histMonth=new Date().getFullYear()+"-"+("0"+(new Date().getMonth()+1)).slice(-2),chartRange=30;
 
 var L={en:{
@@ -61,7 +62,7 @@ bp:"Blood Pressure",bpT:"Target: below 130/80 mmHg",mo:"Morning",ev:"Evening",sy
 su:"Blood Sugar",suT:"Fasting: 4.4\u20137.2 \u00b7 Post-meal: <10.0 mmol/L",fa:"Fasting",pm:"Post-meal",
 me:"Meals",bk:"Breakfast",lu:"Lunch",dn:"Dinner",sn:"Snacks",
 ex:"Exercise",mn:"Minutes",ty:"Type",ql:"Quick Log",mt:"Medication taken",wt:"Weight",nt:"Notes",
-wa:"Share via WhatsApp",wr:"\u26a0\ufe0f Reading outside safe range!",wM:"Please inform Shun Herng or visit a clinic.",
+wa:"Share via WhatsApp",wr:"\u26a0\ufe0f Reading outside safe range!",wM:"Please inform your caregiver or visit a clinic.",
 nd:"e.g. 120/80, 5.5",td:"Today",he:"Health Entry",pv:"\u25c0",nx:"\u25b6",
 aB:"Avg BP",aS:"Avg Sugar",mL:"Meds",
 bR:"BP Target",bl:"Below 130/80",fS:"Fasting Sugar",sR:"4.4\u20137.2 mmol/L",bW:"BP Warning",bWR:"140\u2013159/90\u201399",em:"Emergency",eR:"BP\u2265160 Sugar\u2265250",
@@ -70,7 +71,7 @@ bpTr:"BP Trend (14 days)",sTr:"Sugar Trend (14 days)",tr:"Trends",ncd:"Start log
 ln:"\u4e2d\u6587",sv:"Save",cn:"Cancel",
 meds:"Medications",addM:"+ Add medication",noM:"No medications added yet",
 labs:"Lab Results",addL:"+ Add result",noL:"No lab results yet",
-exp:"\ud83d\udcc4 Export for Clinic",mr:"More",sn2:"Your Name",snP:"e.g. Mum / Dad / Ah Ma",eb:"\ud83d\udce7 Email Backup to Shun Herng",
+exp:"\ud83d\udcc4 Export for Clinic",mr:"More",sn2:"Your Name",snP:"e.g. Mum / Dad / Ah Ma",eb:"\ud83d\udce7 Email Backup",cgN:"Caregiver Name",cgP:"e.g. Dr. Tan / Shun Herng / Pharmacy",
 mp:{bk:"e.g. Roti canai + teh-O",lu:"e.g. Nasi + ikan bakar",dn:"e.g. Porridge + fish",sn:"e.g. Apple, nuts"},
 ep:"e.g. Evening walk",ne:"No exercise today",exTr:"Exercise Trend",np:"Any notes...",
 mPh:{n:"e.g. Amlodipine",d:"e.g. 5mg",f:"e.g. Once daily",t:"e.g. Morning"}
@@ -81,7 +82,7 @@ bp:"\u8840\u538b",bpT:"\u76ee\u6807\uff1a\u4f4e\u4e8e130/80",mo:"\u65e9\u4e0a",e
 su:"\u8840\u7cd6",suT:"\u7a7a\u8179:4.4\u20137.2 \u00b7 \u9910\u540e:<10.0 mmol/L",fa:"\u7a7a\u8179",pm:"\u9910\u540e",
 me:"\u996e\u98df",bk:"\u65e9\u9910",lu:"\u5348\u9910",dn:"\u665a\u9910",sn:"\u96f6\u98df",
 ex:"\u8fd0\u52a8",mn:"\u5206\u949f",ty:"\u7c7b\u578b",ql:"\u5feb\u901f\u8bb0\u5f55",mt:"\u5df2\u670d\u836f",wt:"\u4f53\u91cd",nt:"\u5907\u6ce8",
-wa:"\u901a\u8fc7WhatsApp\u5206\u4eab",wr:"\u26a0\ufe0f \u8bfb\u6570\u8d85\u51fa\u5b89\u5168\u8303\u56f4\uff01",wM:"\u8bf7\u901a\u77e5\u987a\u6052\u6216\u5230\u8bca\u6240\u5c31\u533b\u3002",
+wa:"\u901a\u8fc7WhatsApp\u5206\u4eab",wr:"\u26a0\ufe0f \u8bfb\u6570\u8d85\u51fa\u5b89\u5168\u8303\u56f4\uff01",wM:"\u8bf7\u901a\u77e5\u7167\u987e\u8005\u6216\u5230\u8bca\u6240\u5c31\u533b\u3002",
 nd:"\u4f8b\uff1a120/80, 5.5",td:"\u4eca\u5929",he:"\u5065\u5eb7\u8bb0\u5f55",pv:"\u25c0",nx:"\u25b6",
 aB:"\u5e73\u5747\u8840\u538b",aS:"\u5e73\u5747\u8840\u7cd6",mL:"\u670d\u836f",
 bR:"\u8840\u538b\u76ee\u6807",bl:"\u4f4e\u4e8e130/80",fS:"\u7a7a\u8179\u8840\u7cd6",sR:"4.4\u20137.2",bW:"\u8840\u538b\u8b66\u544a",bWR:"140\u2013159/90\u201399",em:"\u7d27\u6025\u60c5\u51b5",eR:"\u8840\u538b\u2265160 \u8840\u7cd6\u226513.9",
@@ -90,7 +91,7 @@ bpTr:"\u8840\u538b\u8d8b\u52bf (14\u5929)",sTr:"\u8840\u7cd6\u8d8b\u52bf (14\u59
 ln:"BM",sv:"\u4fdd\u5b58",cn:"\u53d6\u6d88",
 meds:"\u836f\u7269\u6e05\u5355",addM:"+ \u6dfb\u52a0\u836f\u7269",noM:"\u5c1a\u672a\u6dfb\u52a0\u836f\u7269",
 labs:"\u5316\u9a8c\u7ed3\u679c",addL:"+ \u6dfb\u52a0\u7ed3\u679c",noL:"\u5c1a\u65e0\u5316\u9a8c\u7ed3\u679c",
-exp:"\ud83d\udcc4 \u5bfc\u51fa\u8bca\u6240\u62a5\u544a",mr:"\u66f4\u591a",sn2:"\u4f60\u7684\u540d\u5b57",snP:"\u4f8b\uff1a\u5988\u5988 / \u7238\u7238",eb:"\ud83d\udce7 \u53d1\u9001\u5907\u4efd\u7ed9\u987a\u6052",
+exp:"\ud83d\udcc4 \u5bfc\u51fa\u8bca\u6240\u62a5\u544a",mr:"\u66f4\u591a",sn2:"\u4f60\u7684\u540d\u5b57",snP:"\u4f8b\uff1a\u5988\u5988 / \u7238\u7238",eb:"\ud83d\udce7 \u53d1\u9001\u5907\u4efd",cgN:"\u7167\u987e\u8005\u540d\u5b57",cgP:"\u4f8b\uff1a\u9648\u533b\u751f / \u987a\u6052 / \u836f\u5242\u5e08",
 mp:{bk:"\u4f8b\uff1a\u9762\u5305+\u5496\u5561\u4e4c",lu:"\u4f8b\uff1a\u767d\u996d+\u84b8\u9c7c",dn:"\u4f8b\uff1a\u7ca5+\u6e05\u84b8\u9c7c",sn:"\u4f8b\uff1a\u82f9\u679c\u3001\u575a\u679c"},
 ep:"\u4f8b\uff1a\u665a\u996d\u540e\u6563\u6b65",ne:"\u4eca\u5929\u6ca1\u8fd0\u52a8",exTr:"\u8fd0\u52a8\u8d8b\u52bf",np:"\u5176\u4ed6\u5907\u6ce8...",
 mPh:{n:"\u4f8b\uff1a\u6c28\u6c2f\u5730\u5e73",d:"\u4f8b\uff1a5mg",f:"\u4f8b\uff1a\u6bcf\u5929\u4e00\u6b21",t:"\u4f8b\uff1a\u65e9\u4e0a"}
@@ -101,7 +102,7 @@ bp:"Tekanan Darah",bpT:"Sasaran: bawah 130/80 mmHg",mo:"Pagi",ev:"Petang",sy:"Si
 su:"Gula Darah",suT:"Puasa: 4.4\u20137.2 \u00b7 Selepas makan: <10.0 mmol/L",fa:"Puasa",pm:"Selepas makan",
 me:"Makanan",bk:"Sarapan",lu:"Makan Tengahari",dn:"Makan Malam",sn:"Snek",
 ex:"Senaman",mn:"Minit",ty:"Jenis",ql:"Rekod Pantas",mt:"Ubat diambil",wt:"Berat",nt:"Nota",
-wa:"Kongsi via WhatsApp",wr:"\u26a0\ufe0f Bacaan di luar julat selamat!",wM:"Sila hubungi Shun Herng atau lawat klinik.",
+wa:"Kongsi via WhatsApp",wr:"\u26a0\ufe0f Bacaan di luar julat selamat!",wM:"Sila hubungi penjaga anda atau lawat klinik.",
 nd:"cth. 120/80, 5.5",td:"Hari Ini",he:"Rekod Kesihatan",pv:"\u25c0",nx:"\u25b6",
 aB:"Purata TD",aS:"Purata Gula",mL:"Ubat",
 bR:"Sasaran TD",bl:"Bawah 130/80",fS:"Gula Puasa",sR:"4.4\u20137.2",bW:"Amaran TD",bWR:"140\u2013159/90\u201399",em:"Kecemasan",eR:"TD\u2265160 Gula\u226513.9",
@@ -110,7 +111,7 @@ bpTr:"Trend TD (14 hari)",sTr:"Trend Gula (14 hari)",exTr:"Trend Senaman",tr:"Tr
 ln:"EN",sv:"Simpan",cn:"Batal",ne:"Tiada senaman hari ini",
 meds:"Ubat-ubatan",addM:"+ Tambah ubat",noM:"Belum ada ubat ditambah",
 labs:"Keputusan Makmal",addL:"+ Tambah keputusan",noL:"Belum ada keputusan makmal",
-exp:"\ud83d\udcc4 Eksport untuk Klinik",mr:"Lagi",sn2:"Nama Anda",snP:"cth. Mak / Ayah",eb:"\ud83d\udce7 Emel sandaran kepada Shun Herng",
+exp:"\ud83d\udcc4 Eksport untuk Klinik",mr:"Lagi",sn2:"Nama Anda",snP:"cth. Mak / Ayah",eb:"\ud83d\udce7 Emel sandaran",cgN:"Nama Penjaga",cgP:"cth. Dr. Tan / Shun Herng / Farmasi",
 mp:{bk:"cth. Roti canai + teh-O",lu:"cth. Nasi + ikan bakar",dn:"cth. Bubur + ikan",sn:"cth. Epal, kacang"},
 ep:"cth. Jalan petang",np:"Sebarang nota...",
 mPh:{n:"cth. Amlodipine",d:"cth. 5mg",f:"cth. Sekali sehari",t:"cth. Pagi"}}};
@@ -215,6 +216,7 @@ function doExport(){
 
 function emailBackup(){
   var subj="Health Tracker Backup - "+(uname||"Parent")+" - "+td();
+  var cgName=caregiver||"Caregiver";
   var body="HEALTH TRACKER BACKUP\n";
   body+="Name: "+(uname||"Parent")+"\nDate: "+new Date().toLocaleDateString()+"\n\n";
   body+="=== RECENT READINGS (Last 14 days) ===\n";
@@ -234,14 +236,31 @@ function emailBackup(){
   var em=LS.g("ht-email")||"";window.location.href="mailto:"+em+"?subject="+encodeURIComponent(subj)+"&body="+encodeURIComponent(body);
 }
 
+var _syncing=false;
 function syncToSheet(){
+  if(_syncing)return;
   var SHEET_URL=LS.g("ht-sheet")||"";
-  if(!SHEET_URL){alert(lang==="zh"?"\u8bf7\u5148\u8bbe\u7f6eGoogle Sheets URL":"Please set Google Sheets URL first");return}
+  if(!SHEET_URL){alert(lang==="zh"?"\u8bf7\u5148\u8bbe\u7f6eGoogle Sheets URL":lang==="ms"?"Sila tetapkan URL Google Sheets dahulu":"Please set Google Sheets URL first");return}
+  _syncing=true;
+  var t=document.getElementById("toast");t.textContent="\u2601\ufe0f Syncing...";t.style.background="#4A90D9";t.classList.add("show");
   var e=data[sel]||eE();
-  var payload={name:uname||"Parent",date:sel,bpMornSys:e.bpMornSys,bpMornDia:e.bpMornDia,bpEveSys:e.bpEveSys,bpEveDia:e.bpEveDia,fastingSugar:e.fastingSugar,postMealSugar:e.postMealSugar,breakfast:e.breakfast,lunch:e.lunch,dinner:e.dinner,snacks:e.snacks,exerciseMin:e.exerciseMin,exerciseType:e.exerciseType,medsTaken:e.medsTaken?"Yes":"No",weight:e.weight,notes:e.notes};
-  fetch(SHEET_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)}).then(function(){
-    var t=document.getElementById("toast");t.textContent="\u2601\ufe0f Synced!";t.classList.add("show");setTimeout(function(){t.classList.remove("show");t.textContent="Saved \u2713"},1500);
-  }).catch(function(err){alert("Sync failed: "+err)});
+  var p=new URLSearchParams();
+  p.append("name",uname||"Parent");p.append("date",sel);p.append("deviceId",deviceId);
+  p.append("bpMornSys",e.bpMornSys||"");p.append("bpMornDia",e.bpMornDia||"");
+  p.append("bpEveSys",e.bpEveSys||"");p.append("bpEveDia",e.bpEveDia||"");
+  p.append("fastingSugar",e.fastingSugar||"");p.append("postMealSugar",e.postMealSugar||"");
+  p.append("breakfast",e.breakfast||"");p.append("lunch",e.lunch||"");
+  p.append("dinner",e.dinner||"");p.append("snacks",e.snacks||"");
+  p.append("exerciseMin",e.exerciseMin||"");p.append("exerciseType",e.exerciseType||"");
+  p.append("medsTaken",e.medsTaken?"Yes":"No");
+  p.append("weight",e.weight||"");p.append("notes",e.notes||"");
+  fetch(SHEET_URL,{method:"POST",mode:"no-cors",body:p}).then(function(){
+    t.textContent="\u2705 Synced!";t.style.background="#4CAF50";
+    setTimeout(function(){t.classList.remove("show");t.style.background="";t.textContent="Saved \u2713";_syncing=false},1500);
+  }).catch(function(err){
+    t.textContent="\u274c Sync failed";t.style.background="#D94F4F";
+    setTimeout(function(){t.classList.remove("show");t.style.background="";t.textContent="Saved \u2713";_syncing=false},2000);
+  });
 }
 
 function numInp(field,val,ph){
@@ -301,7 +320,7 @@ function render(){try{
     h+='<div class="cd"><div class="ct">\u2705 '+t.ql+'</div><div style="margin-bottom:12px"><button onclick="upd(\'medsTaken\','+(e.medsTaken?"false":"true")+')" style="padding:12px 16px;border-radius:12px;border:1.5px solid '+(e.medsTaken?"#3B7A6B":"#E8E4DC")+';background:'+(e.medsTaken?"#E8F2EF":"#FAFAF8")+';cursor:pointer;font-size:14px;font-weight:600;color:'+(e.medsTaken?"#3B7A6B":"#8A8A8A")+';font-family:inherit">\ud83d\udc8a '+t.mt+'</button></div>';
     h+='<div class="rw"><div style="flex:1"><span class="lb">'+t.wt+'</span>'+numInp("weight",e.weight,"e.g. 65")+'</div><div style="flex:2"><span class="lb">'+t.nt+'</span>'+txtInp("notes",e.notes,t.np)+'</div></div></div>';
     // Warning
-    if(isDn)h+='<div class="al"><div style="font-size:24px">\u26a0\ufe0f</div><div style="font-weight:700;color:#D94F4F;margin-top:4px">'+t.wr+'</div><div style="font-size:13px;margin-top:4px">'+t.wM+'</div></div>';
+    if(isDn)h+='<div class="al"><div style="font-size:24px">\u26a0\ufe0f</div><div style="font-weight:700;color:#D94F4F;margin-top:4px">'+t.wr+'</div><div style="font-size:13px;margin-top:4px">'+(caregiver?t.wM.replace(lang==="zh"?"\u7167\u987e\u8005":lang==="ms"?"penjaga anda":"your caregiver",caregiver):t.wM)+'</div></div>';
     // WhatsApp
     if(hasD)h+='<button class="btn bw" onclick="window.open(\'https://wa.me/?text=\'+encodeURIComponent(waMsg()),\'_blank\')"><svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>'+t.wa+'</button>';
     // Auto sync after entry
@@ -340,6 +359,10 @@ function render(){try{
     h+='<div class="cd"><div class="ct">\ud83d\udc64 '+t.sn2+'</div>';
     h+='<input class="inp" value="'+esc(uname)+'" placeholder="'+t.snP+'" onchange="uname=this.value;LS.s(\'ht-n\',uname);save();render()" style="margin-bottom:4px">';
     h+='</div>';
+    // Caregiver Name
+    h+='<div class="cd"><div class="ct">\ud83d\udc68\u200d\u2695\ufe0f '+t.cgN+'</div>';
+    h+='<input class="inp" value="'+esc(caregiver)+'" placeholder="'+t.cgP+'" onchange="caregiver=this.value;LS.s(\'ht-cg\',caregiver)" style="margin-bottom:4px">';
+    h+='<div style="font-size:11px;color:#8A8A8A">'+(lang==="zh"?"\u5b50\u5973\u3001\u533b\u751f\u6216\u836f\u5242\u5e08\u7684\u540d\u5b57":lang==="ms"?"Nama anak, doktor atau ahli farmasi":"Name of child, doctor or pharmacist")+'</div></div>';
     // Backup Email
     var bkEmail=LS.g("ht-email")||"";
     h+='<div class="cd"><div class="ct">\ud83d\udce7 Backup Email</div>';
@@ -351,12 +374,12 @@ function render(){try{
     if(sheetUrl){h+='<div style="font-size:12px;color:#4CAF50;margin-bottom:8px">\u2705 Connected</div>';
       h+='<button class="btn bp" style="padding:10px;margin-bottom:8px" onclick="syncToSheet()">Sync today\'s data</button>';
       h+='<button style="background:none;border:none;color:#D94F4F;font-size:12px;cursor:pointer" onclick="LS.s(\'ht-sheet\',\'\');render()">Disconnect</button>';}
-    else{h+='<div style="font-size:12px;color:#8A8A8A;margin-bottom:8px">'+(lang==="zh"?"\u8ba9\u987a\u6052\u5e2e\u4f60\u8bbe\u7f6e":"Ask Shun Herng to set this up")+'</div>';
+    else{h+='<div style="font-size:12px;color:#8A8A8A;margin-bottom:8px">'+(lang==="zh"?"\u8ba9"+(caregiver||"\u5b50\u5973")+"\u5e2e\u4f60\u8bbe\u7f6e":lang==="ms"?"Minta "+(caregiver||"anak")+" untuk tetapkan":"Ask "+(caregiver||"your child")+" to set this up")+'</div>';
       h+='<input class="inp" id="sheet-url" placeholder="Paste Google Sheets URL here" style="font-size:12px;margin-bottom:8px">';
       h+='<button class="btn bp" style="padding:10px" onclick="var u=document.getElementById(\'sheet-url\').value;if(u.trim()){LS.s(\'ht-sheet\',u.trim());render()}">Connect</button>';}
     h+='</div>';
     // Email Backup
-    h+='<button class="btn" style="background:#E8724A;color:#fff;margin-bottom:14px" onclick="emailBackup()">'+t.eb+'</button>';
+    h+='<button class="btn" style="background:#E8724A;color:#fff;margin-bottom:14px" onclick="emailBackup()">'+(caregiver?t.eb+' \u2192 '+esc(caregiver):t.eb)+'</button>';
     // Export
     h+='<button class="btn be" onclick="doExport()">'+t.exp+'</button>';
     h+='</div>';
