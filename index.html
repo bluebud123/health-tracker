@@ -674,7 +674,7 @@ function render(){try{
   // Exercise chart
   var exD=[];for(i=0;i<d14.length;i++){var dd=data[d14[i]];exD.push(dd&&dd.exerciseMin&&+dd.exerciseMin>0?+dd.exerciseMin:null)}
   var hasEx=false;for(i=0;i<exD.length;i++)if(exD[i]!==null){hasEx=true;break}
-  if(hasEx)drawChart("exc",[{d:exD,c:"#4CAF50",labels:chartLabels}],[{y:30,c:"#3B7A6B"}]);
+  if(hasEx)drawChart("exc",[{d:exD,c:"#4CAF50",labels:lbs}],[{y:30,c:"#3B7A6B"}]);
   else{var ec=document.getElementById("exc");if(ec)ec.insertAdjacentHTML("afterend",'<div style="text-align:center;color:#C4C0B8;font-size:12px;padding:15px;font-style:italic">'+t.ncd+'</div>')}
 
 }catch(err){document.getElementById("app").innerHTML='<div style="padding:40px;text-align:center"><h2>Oops!</h2><p style="color:#8A8A8A;margin:10px">'+err.message+'</p><button onclick="render()" style="padding:12px 24px;background:#3B7A6B;color:#fff;border:none;border-radius:10px;cursor:pointer">Retry</button> <button onclick="view=\'home\';render()" style="padding:12px 24px;margin-top:8px;background:#fff;color:#3B7A6B;border:1px solid #3B7A6B;border-radius:10px;cursor:pointer">Home</button></div>'}}
