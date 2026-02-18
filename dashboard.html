@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Family Health Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#F5F5F0;color:#2D2D2D;min-height:100vh}
+.hd{background:linear-gradient(135deg,#3B7A6B,#2D6155);color:#fff;padding:24px 16px;text-align:center}
+.hd h1{font-size:22px;font-weight:800;margin-bottom:4px}
+.hd p{font-size:13px;opacity:.8}
+.setup{max-width:480px;margin:20px auto;padding:16px}
+.setup input{width:100%;padding:14px;border:2px solid #E8E4DC;border-radius:12px;font-size:14px;font-family:inherit;margin:8px 0}
+.setup button{width:100%;padding:14px;background:#3B7A6B;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:8px}
+.setup button:active{background:#2D6155}
+.cards{max-width:600px;margin:0 auto;padding:16px}
+.card{background:#fff;border-radius:16px;padding:18px;margin-bottom:14px;border:1.5px solid #E8E4DC}
+.card-name{font-size:18px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.row{display:flex;gap:10px;margin-bottom:8px}
+.stat{flex:1;padding:12px;border-radius:10px;text-align:center}
+.stat .val{font-size:22px;font-weight:800}
+.stat .lbl{font-size:11px;opacity:.7;margin-top:2px}
+.ok{background:#E8F5E9;color:#2E7D32}
+.wn{background:#FFF8E1;color:#F57F17}
+.bd{background:#FDEAEA;color:#C62828}
+.nu{background:#F5F5F0;color:#8A8A8A}
+.days{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
+.day{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600}
+.day.ok{background:#E8F5E9;color:#4CAF50}
+.day.miss{background:#FDEAEA;color:#D94F4F}
+.day.empty{background:#F5F5F0;color:#C4C0B8}
+.tbl{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px}
+.tbl th{background:#3B7A6B;color:#fff;padding:8px;text-align:left}
+.tbl td{padding:6px 8px;border-bottom:1px solid #eee}
+.tbl tr:nth-child(even){background:#FAFAF8}
+.tabs{display:flex;gap:8px;margin-bottom:14px}
+.tab{flex:1;padding:10px;border-radius:10px;border:1.5px solid #E8E4DC;background:#fff;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;text-align:center;color:#8A8A8A}
+.tab.active{border-color:#3B7A6B;background:#E8F2EF;color:#3B7A6B}
+.loading{text-align:center;padding:40px;color:#8A8A8A}
+.spin{display:inline-block;width:30px;height:30px;border:3px solid #E8E4DC;border-top-color:#3B7A6B;border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.err{text-align:center;padding:30px;color:#D94F4F}
+.refresh{position:fixed;bottom:20px;right:20px;width:50px;height:50px;border-radius:25px;background:#3B7A6B;color:#fff;border:none;font-size:20px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center}
+.ts{font-size:11px;color:#C4C0B8;text-align:center;padding:10px}
+</style>
+</head>
+<body>
+<div class="hd">
+<h1>👨‍👩‍👦 Family Health Dashboard</h1>
+<p>Monitor your family's health</p>
+</div>
+
+<div id="app">
+<div class="setup" id="setupPanel">
+<p style="font-size:14px;margin-bottom:12px;line-height:1.6">
+To view your family's health data, enter the <strong>published Google Sheet URL</strong>.</p>
+<p style="font-size:12px;color:#8A8A8A;margin-bottom:8px">
+How to get the URL:<br>
+1. Open your Google Sheet<br>
+2. File → Share → Publish to web<br>
+3. Select "Comma-separated values (.csv)"<br>
+4. Click Publish → Copy the link</p>
+<input id="sheetUrl" placeholder="Paste published CSV URL here..." value="">
+<button onclick="connectSheet()">Connect</button>
+<p style="font-size:11px;color:#C4C0B8;margin-top:8px;text-align:center">Data stays in your browser. Nothing is sent to any server.</p>
+</div>
+
+<div id="dashboard" style="display:none">
+<div class="cards" id="content"></div>
+<button class="refresh" onclick="loadData()">↻</button>
+</div>
+</div>
+
+<script>
+var SHEET_URL = localStorage.getItem("dash-url") || "";
+var allData = [];
+var viewTab = "overview";
+
+function connectSheet() {
+  var url = document.getElementById("sheetUrl").value.trim();
+  if (!url) return alert("Please paste the published CSV URL");
+  SHEET_URL = url;
+  localStorage.setItem("dash-url", url);
+  loadData();
+}
+
+function loadData() {
+  if (!SHEET_URL) return;
+  document.getElementById("setupPanel").style.display = "none";
+  document.getElementById("dashboard").style.display = "block";
+  document.getElementById("content").innerHTML = '<div class="loading"><div class="spin"></div><p style="margin-top:12px">Loading data...</p></div>';
+
+  fetch(SHEET_URL)
+    .then(function(r) { return r.text() })
+    .then(function(csv) { parseAndRender(csv) })
+    .catch(function(err) {
+      document.getElementById("content").innerHTML = '<div class="err"><p>Failed to load data</p><p style="font-size:12px;margin-top:8px">' + err.message + '</p><button onclick="localStorage.removeItem(\'dash-url\');location.reload()" style="margin-top:12px;padding:10px 20px;border-radius:10px;border:1px solid #D94F4F;background:#fff;color:#D94F4F;cursor:pointer;font-family:inherit">Reset URL</button></div>';
+    });
+}
+
+function parseCSV(csv) {
+  var lines = csv.trim().split("\n");
+  var headers = parseCSVLine(lines[0]);
+  var rows = [];
+  for (var i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    var vals = parseCSVLine(lines[i]);
+    var obj = {};
+    for (var j = 0; j < headers.length; j++) {
+      obj[headers[j].trim()] = (vals[j] || "").trim();
+    }
+    rows.push(obj);
+  }
+  return rows;
+}
+
+function parseCSVLine(line) {
+  var result = [];
+  var current = "";
+  var inQuotes = false;
+  for (var i = 0; i < line.length; i++) {
+    var c = line[i];
+    if (c === '"') { inQuotes = !inQuotes; }
+    else if (c === ',' && !inQuotes) { result.push(current); current = ""; }
+    else { current += c; }
+  }
+  result.push(current);
+  return result;
+}
+
+function parseAndRender(csv) {
+  allData = parseCSV(csv);
+  renderDashboard();
+}
+
+function bpStatus(v) {
+  var n = +v; if (!n) return "nu";
+  return n >= 160 ? "bd" : n >= 130 ? "wn" : "ok";
+}
+
+function suStatus(v) {
+  var n = +v; if (!n) return "nu";
+  return (n >= 13.9 || n < 3.9) ? "bd" : n >= 10.0 ? "wn" : n <= 7.2 ? "ok" : "wn";
+}
+
+function renderDashboard() {
+  var h = "";
+  
+  // Group by name (column index 1, "Name")
+  var people = {};
+  var nameKey = Object.keys(allData[0] || {}).filter(function(k) { return k.toLowerCase().indexOf("name") >= 0; })[0] || "Name";
+  var dateKey = Object.keys(allData[0] || {}).filter(function(k) { return k.toLowerCase().indexOf("date") >= 0; })[0] || "Date";
+  var bpMornSysKey = Object.keys(allData[0] || {}).filter(function(k) { return k.toLowerCase().indexOf("morn") >= 0 && k.toLowerCase().indexOf("sys") >= 0; })[0] || "Morn Sys";
+  var bpMornDiaKey = Object.keys(allData[0] || {}).filter(function(k) { return k.toLowerCase().indexOf("morn") >= 0 && k.toLowerCase().indexOf("dia") >= 0; })[0] || "Morn Dia";
+  var fastKey = Object.keys(allData[0] || {}).filter(function(k) { return k.toLowerCase().indexOf("fasting") >= 0; })[0] || "Fasting Sugar\n(mmol/L)";
+  var exKey = Object.keys(allData[0] || {}).filter(function(k) { return k.toLowerCase().indexOf("exercise") >= 0 && k.toLowerCase().indexOf("min") >= 0; })[0] || "Exercise\n(min)";
+  var medKey = Object.keys(allData[0] || {}).filter(function(k) { return k.toLowerCase().indexOf("med") >= 0; })[0] || "Meds\nTaken";
+
+  for (var i = 0; i < allData.length; i++) {
+    var row = allData[i];
+    var name = row[nameKey] || "Unknown";
+    if (!people[name]) people[name] = [];
+    people[name].push(row);
+  }
+
+  // Tabs
+  h += '<div class="tabs">';
+  h += '<button class="tab' + (viewTab === "overview" ? " active" : "") + '" onclick="viewTab=\'overview\';renderDashboard()">Overview</button>';
+  h += '<button class="tab' + (viewTab === "table" ? " active" : "") + '" onclick="viewTab=\'table\';renderDashboard()">Details</button>';
+  h += '</div>';
+
+  if (viewTab === "overview") {
+    for (var name in people) {
+      var rows = people[name].sort(function(a, b) { return b[dateKey].localeCompare(a[dateKey]); });
+      var latest = rows[0];
+
+      h += '<div class="card">';
+      h += '<div class="card-name">👤 ' + name + '</div>';
+
+      // Latest readings
+      var bp = latest[bpMornSysKey];
+      var su = latest[fastKey];
+      h += '<div class="row">';
+      h += '<div class="stat ' + bpStatus(bp) + '"><div class="val">' + (bp ? bp + "/" + (latest[bpMornDiaKey] || "?") : "-") + '</div><div class="lbl">BP mmHg</div></div>';
+      h += '<div class="stat ' + suStatus(su) + '"><div class="val">' + (su || "-") + '</div><div class="lbl">Sugar mmol/L</div></div>';
+      h += '</div>';
+
+      // 7-day stats
+      var last7 = rows.slice(0, 7);
+      var bpArr = [], suArr = [], exCnt = 0, medCnt = 0;
+      for (var j = 0; j < last7.length; j++) {
+        if (+last7[j][bpMornSysKey]) bpArr.push(+last7[j][bpMornSysKey]);
+        if (+last7[j][fastKey]) suArr.push(+last7[j][fastKey]);
+        if (+last7[j][exKey] > 0) exCnt++;
+        if (last7[j][medKey] === "Yes") medCnt++;
+      }
+      var avgBP = bpArr.length ? Math.round(bpArr.reduce(function(a, b) { return a + b }, 0) / bpArr.length) : 0;
+      var avgSU = suArr.length ? (suArr.reduce(function(a, b) { return a + b }, 0) / suArr.length).toFixed(1) : 0;
+
+      h += '<div style="font-size:12px;color:#8A8A8A;margin:8px 0 4px">7-day average</div>';
+      h += '<div class="row">';
+      h += '<div class="stat ' + bpStatus(avgBP) + '"><div class="val">' + (avgBP || "-") + '</div><div class="lbl">Avg BP</div></div>';
+      h += '<div class="stat ' + suStatus(avgSU) + '"><div class="val">' + (avgSU || "-") + '</div><div class="lbl">Avg Sugar</div></div>';
+      h += '<div class="stat ok"><div class="val">' + exCnt + '/7</div><div class="lbl">Exercise</div></div>';
+      h += '<div class="stat ok"><div class="val">' + medCnt + '/7</div><div class="lbl">Meds</div></div>';
+      h += '</div>';
+
+      // 7-day logging dots
+      h += '<div style="font-size:12px;color:#8A8A8A;margin:8px 0 4px">Last 7 days</div>';
+      h += '<div class="days">';
+      var logged = {};
+      for (var j = 0; j < rows.length; j++) logged[rows[j][dateKey]] = true;
+      for (var j = 6; j >= 0; j--) {
+        var d = new Date(); d.setDate(d.getDate() - j);
+        var dk = d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
+        var dayLabel = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.getDay()];
+        h += '<div class="day ' + (logged[dk] ? "ok" : "miss") + '">' + dayLabel + '</div>';
+      }
+      h += '</div>';
+
+      // Latest date
+      h += '<div style="font-size:11px;color:#C4C0B8;margin-top:10px">Last sync: ' + (latest[dateKey] || "?") + '</div>';
+      h += '</div>';
+    }
+  } else {
+    // Table view
+    for (var name in people) {
+      var rows = people[name].sort(function(a, b) { return b[dateKey].localeCompare(a[dateKey]); });
+      h += '<div class="card">';
+      h += '<div class="card-name">👤 ' + name + '</div>';
+      h += '<div style="overflow-x:auto"><table class="tbl">';
+      h += '<tr><th>Date</th><th>Morn BP</th><th>Fasting</th><th>Exercise</th><th>Meds</th></tr>';
+      for (var j = 0; j < Math.min(rows.length, 30); j++) {
+        var r = rows[j];
+        h += '<tr>';
+        h += '<td>' + (r[dateKey] || "") + '</td>';
+        h += '<td style="color:' + ({ok:"#4CAF50",wn:"#F57F17",bd:"#C62828"}[bpStatus(r[bpMornSysKey])] || "#2D2D2D") + '">' + (r[bpMornSysKey] ? r[bpMornSysKey] + "/" + r[bpMornDiaKey] : "-") + '</td>';
+        h += '<td style="color:' + ({ok:"#4CAF50",wn:"#F57F17",bd:"#C62828"}[suStatus(r[fastKey])] || "#2D2D2D") + '">' + (r[fastKey] || "-") + '</td>';
+        h += '<td>' + (+r[exKey] > 0 ? r[exKey] + "min" : "-") + '</td>';
+        h += '<td>' + (r[medKey] === "Yes" ? "✅" : "❌") + '</td>';
+        h += '</tr>';
+      }
+      h += '</table></div></div>';
+    }
+  }
+
+  h += '<div class="ts">Last refreshed: ' + new Date().toLocaleTimeString() + '</div>';
+  h += '<div style="text-align:center;padding:10px"><button onclick="localStorage.removeItem(\'dash-url\');location.reload()" style="padding:8px 16px;border-radius:8px;border:1px solid #D94F4F;background:#fff;color:#D94F4F;cursor:pointer;font-size:12px;font-family:inherit">Disconnect</button></div>';
+
+  document.getElementById("content").innerHTML = h;
+}
+
+// Auto-load if URL saved
+if (SHEET_URL) {
+  document.getElementById("sheetUrl").value = SHEET_URL;
+  loadData();
+}
+</script>
+</body>
+</html>
