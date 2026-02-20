@@ -45,7 +45,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 </head>
 <body>
 <div class="hd">
-<h1>\ud83e\udd1d KawanSihat</h1>
+<h1>🤝 KawanSihat</h1>
 <p>Family Health Dashboard</p>
 </div>
 <div id="content">
@@ -55,7 +55,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 <input type="text" id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv">
 <button onclick="connect()">Connect</button>
 <p style="font-size:11px;color:#C4C0B8;margin-top:12px;line-height:1.5">
-How to get URL: Google Sheet \u2192 File \u2192 Share \u2192 Publish to web \u2192 Select CSV \u2192 Copy link</p>
+How to get URL: Google Sheet → File → Share → Publish to web → Select CSV → Copy link</p>
 </div>
 </div>
 <script>
@@ -187,14 +187,14 @@ function renderDashboard() {
       daysAgo = Math.floor((new Date()-ld)/864e5);
     }
     if (bpVal >= 160 || suVal >= 13.9) {
-      h += '<div class="alert-card"><div class="title">\u26a0\ufe0f '+name+' — Critical Reading</div>';
+      h += '<div class="alert-card"><div class="title">⚠️ '+name+' — Critical Reading</div>';
       h += '<div class="msg">';
       if (bpVal>=160) h += 'BP: <b>'+latest[K.bpSys]+'/'+latest[K.bpDia]+'</b> mmHg ';
       if (suVal>=13.9) h += 'Sugar: <b>'+latest[K.fasting]+'</b> mmol/L ';
       h += '('+latest[K.date]+')</div></div>';
     }
     if (daysAgo >= 2) {
-      h += '<div class="alert-card"><div class="title">\u23f0 '+name+' — No data for '+daysAgo+' days</div>';
+      h += '<div class="alert-card"><div class="title">⏰ '+name+' — No data for '+daysAgo+' days</div>';
       h += '<div class="msg">Last logged: '+latest[K.date]+'</div></div>';
     }
   }
@@ -206,7 +206,7 @@ function renderDashboard() {
       var last7 = rows.slice(0,7);
 
       h += '<div class="card">';
-      h += '<div class="card-name">\ud83d\udc64 '+name+'</div>';
+      h += '<div class="card-name">👤 '+name+'</div>';
 
       // Latest readings
       var bpS = latest[K.bpSys] || (K.eveSys ? latest[K.eveSys] : "");
@@ -258,7 +258,7 @@ function renderDashboard() {
       }
       var sympKeys=Object.keys(sympCounts);
       if (sympKeys.length) {
-        h += '<div style="margin-top:6px;font-size:11px;color:#D94F4F">\u26a0\ufe0f ';
+        h += '<div style="margin-top:6px;font-size:11px;color:#D94F4F">⚠️ ';
         for (var si=0;si<sympKeys.length;si++) h += (si>0?", ":"")+sympKeys[si]+" ("+sympCounts[sympKeys[si]]+"x)";
         h += '</div>';
       }
@@ -283,7 +283,7 @@ function renderDashboard() {
     for (var name in people) {
       var rows = people[name].sort(function(a,b){return b[K.date].localeCompare(a[K.date])});
       h += '<div class="card">';
-      h += '<div class="card-name">\ud83d\udcd3 '+name+'\'s Journal</div>';
+      h += '<div class="card-name">📓 '+name+'\'s Journal</div>';
       var shown = 0;
       for (var j=0;j<rows.length&&shown<14;j++) {
         var r=rows[j];
@@ -298,10 +298,10 @@ function renderDashboard() {
         h += '<div style="font-weight:700;margin-bottom:4px">'+r[K.date];
         if(hasMood)h += ' '+r[K.mood];
         h += '</div>';
-        if(hasSymp)h += '<div style="color:#D94F4F">\u26a0\ufe0f '+r[K.symptoms]+'</div>';
-        if(hasSocial)h += '<div>\ud83d\udc65 '+r[K.social]+'</div>';
-        if(hasAct)h += '<div>\ud83d\udccd '+r[K.activity]+'</div>';
-        if(hasJournal)h += '<div style="margin-top:4px;color:#5A5A5A;font-style:italic">\ud83d\udcdd '+r[K.journal]+'</div>';
+        if(hasSymp)h += '<div style="color:#D94F4F">⚠️ '+r[K.symptoms]+'</div>';
+        if(hasSocial)h += '<div>👥 '+r[K.social]+'</div>';
+        if(hasAct)h += '<div>📍 '+r[K.activity]+'</div>';
+        if(hasJournal)h += '<div style="margin-top:4px;color:#5A5A5A;font-style:italic">📝 '+r[K.journal]+'</div>';
         h += '</div>';
       }
       if(!shown) h += '<div style="text-align:center;color:#C4C0B8;padding:20px;font-style:italic">No journal entries yet</div>';
@@ -312,7 +312,7 @@ function renderDashboard() {
     for (var name in people) {
       var rows = people[name].sort(function(a,b){return b[K.date].localeCompare(a[K.date])});
       h += '<div class="card">';
-      h += '<div class="card-name">\ud83d\udc64 '+name+'</div>';
+      h += '<div class="card-name">👤 '+name+'</div>';
       h += '<div style="overflow-x:auto"><table class="tbl">';
       h += '<tr><th>Date</th><th>BP</th><th>Sugar</th><th>Ex</th><th>Meds</th><th>Mood</th></tr>';
       for (var j=0;j<Math.min(rows.length,30);j++) {
@@ -324,7 +324,7 @@ function renderDashboard() {
         h += '<td style="color:'+clr(bp(bpV))+'">'+(bpV?bpV+"/"+bpDV:"-")+'</td>';
         h += '<td style="color:'+clr(su(r[K.fasting]))+'">'+(r[K.fasting]||"-")+'</td>';
         h += '<td>'+(+(r[K.exMin])>0?r[K.exMin]+"m":"-")+'</td>';
-        h += '<td>'+((r[K.meds]==="Yes"||r[K.meds]==="true")?"\u2705":"\u274c")+'</td>';
+        h += '<td>'+((r[K.meds]==="Yes"||r[K.meds]==="true")?"✅":"❌")+'</td>';
         h += '<td>'+(K.mood&&r[K.mood]?r[K.mood]:"-")+'</td>';
         h += '</tr>';
       }
@@ -334,7 +334,7 @@ function renderDashboard() {
 
   h += '</div>';
   h += '<div class="ts">Last refreshed: '+new Date().toLocaleTimeString()+'</div>';
-  h += '<div style="text-align:center;padding:10px"><button onclick="loadData()" style="padding:10px 20px;border-radius:8px;border:1.5px solid #3B7A6B;background:#E8F2EF;color:#3B7A6B;cursor:pointer;font-weight:700;font-size:13px;font-family:inherit;margin-right:8px">\u27f3 Refresh</button>';
+  h += '<div style="text-align:center;padding:10px"><button onclick="loadData()" style="padding:10px 20px;border-radius:8px;border:1.5px solid #3B7A6B;background:#E8F2EF;color:#3B7A6B;cursor:pointer;font-weight:700;font-size:13px;font-family:inherit;margin-right:8px">⟳ Refresh</button>';
   h += '<button onclick="localStorage.removeItem(\'dash-url\');location.reload()" style="padding:10px 20px;border-radius:8px;border:1px solid #D94F4F;background:#fff;color:#D94F4F;cursor:pointer;font-size:12px;font-family:inherit">Disconnect</button></div>';
 
   document.getElementById("content").innerHTML = h;
