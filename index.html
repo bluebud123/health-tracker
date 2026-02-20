@@ -188,6 +188,7 @@ function getDailyTarget(){
   if(e.mood)done++;
   return{done:done,total:total,perfect:done>=3,superstar:done>=4}}
 
+function togMed(){if(!data[sel])data[sel]=eE();data[sel].medsTaken=!data[sel].medsTaken;save();render()}
 function togSymp(s){if(!data[sel])data[sel]=eE();var arr=data[sel].symptoms||[];var idx=arr.indexOf(s);if(idx>=0)arr.splice(idx,1);else arr.push(s);data[sel].symptoms=arr;save();render()}
 function voiceField(field){
   var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -632,7 +633,7 @@ function render(){try{
     h+='<button onclick="noExToggle()" style="margin-top:10px;padding:10px 16px;border-radius:10px;border:1.5px solid '+(noEx?'#D94F4F':'#E8E4DC')+';background:'+(noEx?'#FDEAEA':'#FAFAF8')+';color:'+(noEx?'#D94F4F':'#8A8A8A')+';font-size:13px;font-weight:600;cursor:pointer;width:100%;font-family:inherit">'+(noEx?'\u2705 ':'\u274c ')+t.ne+'</button>';
     h+='</div>';
     // Quick log
-    h+='<div class="cd"><div class="ct">\u2705 '+t.ql+'</div><div style="margin-bottom:12px"><button onclick="upd(\'medsTaken\','+(e.medsTaken?"false":"true")+')" style="padding:12px 16px;border-radius:12px;border:1.5px solid '+(e.medsTaken?"#3B7A6B":"#E8E4DC")+';background:'+(e.medsTaken?"#E8F2EF":"#FAFAF8")+';cursor:pointer;font-size:14px;font-weight:600;color:'+(e.medsTaken?"#3B7A6B":"#8A8A8A")+';font-family:inherit">\ud83d\udc8a '+t.mt+'</button></div>';
+    h+='<div class="cd"><div class="ct">\u2705 '+t.ql+'</div><div style="margin-bottom:12px"><button onclick="togMed()" style="padding:12px 16px;border-radius:12px;border:1.5px solid '+(e.medsTaken?"#3B7A6B":"#E8E4DC")+';background:'+(e.medsTaken?"#E8F2EF":"#FAFAF8")+';cursor:pointer;font-size:14px;font-weight:600;color:'+(e.medsTaken?"#3B7A6B":"#8A8A8A")+';font-family:inherit">\ud83d\udc8a '+t.mt+'</button></div>';
     h+='<div class="rw"><div style="flex:1"><span class="lb">'+t.wt+'</span>'+numInp("weight",e.weight,"e.g. 65")+'</div><div style="flex:2"><span class="lb">'+t.nt+'</span>'+txtInp("notes",e.notes,t.np)+'</div></div></div>';
     // Warning
     if(isDn)h+='<div class="al"><div style="font-size:24px">\u26a0\ufe0f</div><div style="font-weight:700;color:#D94F4F;margin-top:4px">'+t.wr+'</div><div style="font-size:13px;margin-top:4px">'+(caregiver?t.wM.replace(lang==="zh"?"\u7167\u987e\u8005":lang==="ms"?"penjaga anda":"your caregiver",caregiver):t.wM)+'</div></div>';
