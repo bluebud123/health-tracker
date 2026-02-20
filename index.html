@@ -190,14 +190,28 @@ function getDailyTarget(){
 
 function togSymp(s){if(!data[sel])data[sel]=eE();var arr=data[sel].symptoms||[];var idx=arr.indexOf(s);if(idx>=0)arr.splice(idx,1);else arr.push(s);data[sel].symptoms=arr;save();render()}
 function voiceField(field){
-  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;
-  var r=new SR();r.lang=lang==="zh"?"zh-CN":lang==="ms"?"ms-MY":"en-MY";r.continuous=false;r.interimResults=false;
-  var t=document.getElementById("toast");t.textContent="\ud83c\udfa4 "+(lang==="zh"?"\u8bf7\u8bf4\u8bdd...":lang==="ms"?"Sila bercakap...":"Listening...");t.style.background="#4A90D9";t.classList.add("show");
-  r.onresult=function(ev){var txt=ev.results[0][0].transcript;if(!data[sel])data[sel]=eE();
-    var old=data[sel][field]||"";data[sel][field]=old+(old?" ":"")+txt;save();render();
-    t.textContent="\u2705 "+(lang==="zh"?"\u5df2\u8bb0\u5f55":"Recorded");t.style.background="#4CAF50";setTimeout(function(){t.classList.remove("show");t.style.background=""},1500)};
-  r.onerror=function(){t.textContent="\u274c "+(lang==="zh"?"\u8bed\u97f3\u5931\u8d25":"Voice failed");t.style.background="#D94F4F";setTimeout(function(){t.classList.remove("show");t.style.background=""},1500)};
-  r.start()}
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){alert("Voice not supported in this browser");return}
+  var t=document.getElementById("toast");
+  t.textContent="\ud83c\udfa4 "+(lang==="zh"?"\u8bf7\u8bf4\u8bdd...":lang==="ms"?"Sila bercakap...":"Listening...");
+  t.style.background="#4A90D9";t.classList.add("show");
+  try{
+    var r=new SR();
+    r.lang=lang==="zh"?"zh-CN":lang==="ms"?"ms-MY":"en-MY";
+    r.continuous=false;r.interimResults=false;
+    r.onresult=function(ev){
+      var txt=ev.results[0][0].transcript;if(!data[sel])data[sel]=eE();
+      var old=data[sel][field]||"";data[sel][field]=old+(old?" ":"")+txt;save();render();
+      t.textContent="\u2705 "+(lang==="zh"?"\u5df2\u8bb0\u5f55":"Recorded");t.style.background="#4CAF50";
+      setTimeout(function(){t.classList.remove("show");t.style.background=""},1500)};
+    r.onerror=function(ev){
+      t.textContent="\u274c "+(ev.error||"Voice failed");t.style.background="#D94F4F";
+      setTimeout(function(){t.classList.remove("show");t.style.background=""},2500)};
+    r.onend=function(){};
+    r.start();
+  }catch(err){
+    t.textContent="\u274c "+err.message;t.style.background="#D94F4F";
+    setTimeout(function(){t.classList.remove("show");t.style.background=""},2500)}}
 function checkInactivity(){
   var lastLog="";var keys=Object.keys(data).sort();if(keys.length)lastLog=keys[keys.length-1];
   if(!lastLog)return;var days=daysBetween(lastLog,td());
