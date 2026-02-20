@@ -73,9 +73,20 @@ function connect() {
 
 function loadData() {
   document.getElementById("content").innerHTML = '<div style="text-align:center;padding:40px;color:#8A8A8A">Loading...</div>';
-  fetch(SCRIPT_URL + "?action=read")
-    .then(function(r) { return r.json(); })
-    .then(function(json) {
+  
+  // Use XMLHttpRequest - handles Apps Script redirects better than fetch
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", SCRIPT_URL + "?action=read", true);
+  xhr.onload = function() {
+    try {
+      var json;
+      try { json = JSON.parse(xhr.responseText); }
+      catch(pe) {
+        // Apps Script sometimes wraps response - extract JSON
+        var m = xhr.responseText.match(/\{[\s\S]*\}/);
+        if (m) json = JSON.parse(m[0]);
+        else throw new Error("Invalid response. Please check Apps Script is v5 and redeployed.");
+      }
       if (json.status === "ok" && json.data) {
         allData = json.data;
         if (!allData.length) {
@@ -86,10 +97,14 @@ function loadData() {
       } else {
         throw new Error(json.message || "Unknown error");
       }
-    })
-    .catch(function(e) {
-      document.getElementById("content").innerHTML = '<div style="text-align:center;padding:40px;color:#D94F4F">Failed to load: ' + e.message + '<br><br><button onclick="localStorage.removeItem(\'dash-script-url\');location.reload()" style="padding:10px 20px;border-radius:8px;border:1px solid #D94F4F;background:#fff;color:#D94F4F;cursor:pointer">Reset</button></div>';
-    });
+    } catch(e) {
+      document.getElementById("content").innerHTML = '<div style="text-align:center;padding:40px;color:#D94F4F">Failed: ' + e.message + '<br><br><button onclick="localStorage.removeItem(\'dash-script-url\');location.reload()" style="padding:10px 20px;border-radius:8px;border:1px solid #D94F4F;background:#fff;color:#D94F4F;cursor:pointer">Reset</button></div>';
+    }
+  };
+  xhr.onerror = function() {
+    document.getElementById("content").innerHTML = '<div style="text-align:center;padding:40px;color:#D94F4F">Network error. Check your connection.<br><br><button onclick="loadData()" style="padding:10px 20px;border-radius:8px;border:1.5px solid #3B7A6B;background:#E8F2EF;color:#3B7A6B;cursor:pointer;font-weight:700;margin:8px">Retry</button><button onclick="localStorage.removeItem(\'dash-script-url\');location.reload()" style="padding:10px 20px;border-radius:8px;border:1px solid #D94F4F;background:#fff;color:#D94F4F;cursor:pointer">Reset</button></div>';
+  };
+  xhr.send();
 }
 
 function findKey(obj, terms) {
