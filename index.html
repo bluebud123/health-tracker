@@ -223,7 +223,7 @@ function toggleSync(){
     if(confirm(lang==="zh"?"\u786e\u5b9a\u65ad\u5f00\u6570\u636e\u540c\u6b65\uff1f\u60a8\u7684\u7167\u987e\u8005\u5c06\u65e0\u6cd5\u770b\u5230\u65b0\u6570\u636e\u3002":lang==="ms"?"Pasti putuskan segerak data? Penjaga anda tidak akan dapat melihat data baru.":"Disconnect data sync? Your caregiver won\'t see new data.")){
       LS.s("ht-sheet","");LS.s("ht-sheet-off",true);render()}}
   else{
-    LS.s("ht-sheet","https://script.google.com/macros/s/AKfycbzq_ZI1blxlFrW3o8nBfLoyTf7sHxTL5dis_PTr7UbM1u4aC5FFOmBxyLgsTdogtljO/exec");LS.s("ht-sheet-off","");render()}}
+    LS.s("ht-sheet","https://script.google.com/macros/s/AKfycbyc9vv-ET9GwisLM588zOqWGGI_cYTdFk2KGUGZOmZjLT38VqW1Vvgexv2WhuK1mlpm/exec");LS.s("ht-sheet-off","");render()}}
 function togLang(){lang=lang==="en"?"zh":lang==="zh"?"ms":"en";save();render()}
 
 // Canvas chart
@@ -329,6 +329,10 @@ function syncToSheet(){logAnalytics("sync");
   p.append("dinner",e.dinner||"");p.append("snacks",e.snacks||"");
   p.append("exerciseMin",e.exerciseMin||"");p.append("exerciseType",e.exerciseType||"");
   p.append("medsTaken",e.medsTaken?"Yes":"No");
+  p.append("mood",e.mood||"");p.append("symptoms",JSON.stringify(e.symptoms||[]));
+  p.append("social",e.social||"");p.append("dayActivity",e.dayActivity||"");
+  p.append("journal",e.journal||"");
+  p.append("wakeTime",e.wakeTime||"");p.append("bedTime",e.bedTime||"");
   p.append("weight",e.weight||"");p.append("notes",e.notes||"");
   fetch(SHEET_URL,{method:"POST",mode:"no-cors",body:p}).then(function(){
     t.textContent="\u2705 Synced!";t.style.background="#4CAF50";
